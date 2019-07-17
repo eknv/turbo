@@ -1,0 +1,296 @@
+<dom-module id="turbo-entity">
+
+    <link rel="import" href="turbo-grid.html">
+
+    <link rel="import" href="../../../imports/jquery2-import.html">
+    <link rel="import" href="../../../imports/kendo-ui-splitter.html">
+    <link rel="import" href="../../../bower_components/moment-element/moment-with-locales-import.html"/>
+    <link rel="import" href="../../../bower_components/paper-tabs/paper-tabs.html"/>
+    <link rel="import" href="../../../bower_components/paper-tabs/paper-tab.html"/>
+    <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html"/>
+    <link rel="import" href="../../../bower_components/iron-lazy-pages/iron-lazy-pages.html"/>
+    <link rel="import" href="../../../bower_components/paper-input/paper-input.html"/>
+    <link rel="import" href="../inputs/number-range-input.html">
+    <link rel="import" href="../inputs/date-time-period-picker.html">
+    <link rel="import" href="../inputs/date-period-picker.html">
+    <link rel="import" href="../inputs/time-period-picker.html">
+    <link rel="import" href="../globals-behavior.html">
+
+    <!--todo/kn.. introduce a new dialog for the design-data tables.. and clean up the previous commented out dialog plugin-->
+
+
+    <template>
+
+        <style>
+            #turboGrid {
+                width: 900px;
+                height: 150px;
+                overflow: auto;
+            }
+
+            .input-size {
+                width: 80px;
+            }
+
+            .inline {
+                display: inline-block;
+                padding-right: 20px;
+            }
+
+            .paper-date-picker-dialog {
+                position: fixed;
+                z-index: 1000;
+            }
+
+            .flex-wrap {
+                @apply(--layout-horizontal);
+                @apply(--layout-wrap);
+                width: 900px;
+            }
+
+            #vertical {
+                height: 1000px;
+                margin: 0 auto;
+            }
+
+            #top-pane {
+                padding: 10px;
+            }
+            #bottom-pane {
+                background-color: rgba(60, 70, 80, 0.15);
+            }
+
+            #left-pane, #right-pane {
+                background-color: rgba(60, 70, 80, 0.05);
+            }
+
+            .pane-content {
+                padding: 0 10px;
+            }
+
+            .flex-end-align {
+                @apply(--layout-horizontal);
+                @apply(--layout-end);
+            }
+
+        </style>
+
+        <div id="vertical">
+
+            <div id="top-pane" class="container flex-end-align flex-wrap">
+
+                <template is="dom-repeat" items="{{fillFields}}">
+
+                    <template is="dom-if" if="{{_searchable(item)}}">
+
+                        <template is="dom-if" if="{{_hasType(item.props.type, 'String')}}">
+                            <paper-input id="_search{{modelName}}[[item.name]]" class="input-size inline"
+                                         label="{{item.name}}" always-float-label></paper-input>
+                        </template>
+                        <template is="dom-if" if="{{_hasType(item.props.type, 'Integer')}}">
+                            <number-range-input id="_search{{modelName}}[[item.name]]" size="{{item.length}}"
+                                                name="{{item.name}} range"
+                                                from-value="" to-value=""
+                                                is-decimal="{{globals.false}}"></number-range-input>
+                        </template>
+                        <template is="dom-if" if="{{_hasType(item.props.type, 'Decimal')}}">
+                            <number-range-input id="_search{{modelName}}[[item.name]]" size="{{item.length}}"
+                                                name="{{item.name}} range"
+                                                from-value="" to-value=""
+                                                is-decimal="{{globals.true}}"></number-range-input>
+                        </template>
+                        <template is="dom-if" if="{{_hasType(item.props.type, 'DateTime')}}">
+                            <date-time-period-picker id="_search{{modelName}}[[item.name]]" class="inline"
+                                           name="{{item.name}}"
+                                           from-date-time="{{fromDateTime}}" to-date-time="{{toDateTime}}"></date-time-period-picker>
+                        </template>
+                        <template is="dom-if" if="{{_hasType(item.props.type, 'Date')}}">
+                            <date-period-picker id="_search{{modelName}}[[item.name]]" class="inline"
+                                           name="{{item.name}}"
+                                           from-date="{{fromDate}}" to-date="{{toDate}}"></date-period-picker>
+                        </template>
+                        <template is="dom-if" if="{{_hasType(item.props.type, 'Time')}}">
+                            <time-period-picker id="_search{{modelName}}[[item.name]]" class="inline"
+                                                     name="{{item.name}}"
+                                                     from-time="{{fromTime}}" to-time="{{toTime}}"></time-period-picker>
+                        </template>
+
+                    </template>
+
+                </template>
+
+                <paper-button on-tap="_search">
+                    <iron-icon icon="search"></iron-icon>
+                    Search
+                </paper-button>
+            </div>
+
+
+            <div id="bottom-pane">
+                <div id="horizontal" style="height: 100%; width: 100%;">
+                    <div id="left-pane" class="pane-content">
+                        <turbo-grid model-name="{{modelName}}"
+                                    page-size="{{pageSize}}"
+                                    fill-fields="{{fillFields}}"
+                                    fill-relationships="{{fillRelationships}}"
+                                    has-parent='[[falseValue]]'
+                                    criteria="{{criteria}}"
+                                    selected-row-id="{{selectedParentRowId}}"></turbo-grid>
+                    </div>
+                    <div id="right-pane" class="pane-content">
+                        <paper-tabs selected="{{route}}" attr-for-selected="key" scrollable>
+                            <template is="dom-repeat" items="{{fillRelationships}}">
+                                <paper-tab key="{{item.parentFieldType}}">{{item.parentFieldType}}</paper-tab>
+                            </template>
+                        </paper-tabs>
+                        <iron-lazy-pages attr-for-selected="data-route" selected="{{route}}" loading="{{loading}}"
+                                         hide-immediately>
+                            <template is="dom-repeat" items="{{fillRelationships}}">
+                                <template is="iron-lazy-page" data-route="{{item.parentFieldType}}">
+                                    <br>
+                                    <turbo-grid model-name="{{item.parentFieldType}}"
+                                                page-size="{{pageSize}}"
+                                                has-parent='[[trueValue]]'
+                                                parent-info="{{item}}"
+                                                selected-parent-id="{{selectedParentRowId}}"></turbo-grid>
+                                </template>
+                            </template>
+                        </iron-lazy-pages>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </template>
+
+
+    <script>
+
+        Polymer({
+            is: "turbo-entity",
+            properties: {
+                modelName: {
+                    type: String
+                }
+            },
+
+            behaviors: [GlobalsBehaviour],
+
+            attached: function () {
+                this.criteria = {changed: false, data: []};
+
+            },
+
+            _searchable: function (entity) {
+                return entity.props.search_active == true;
+            },
+
+            _hasType: function (entityType, type) {
+                return entityType == type;
+            },
+
+
+            _search: function (e) {
+
+                var self = this;
+
+                var fields = self.fillFields;
+                self.splice('criteria.data', 0, self.criteria.data.length)
+                for (var i = 0; i < fields.length; i++) {
+                    var field = fields[i];
+                    if (field.props.search_active == true) {
+                        var criteriaItem = {}
+                        criteriaItem.name = field.name
+                        var element = self.querySelector('#_search' + self.modelName + field.name);
+                        if (field.props.search_range == true) {
+                            if (field.props.type == 'DateTime') {
+                                criteriaItem.fromValue = element.fromDateTime != null ? element.fromDateTime.format('YYYY-MM-D HH:mm:ss') : null;
+                                criteriaItem.toValue = element.toDateTime != null ? element.toDateTime.format('YYYY-MM-D HH:mm:ss') : null;
+                            }
+                            else if (field.props.type == 'Date') {
+                                criteriaItem.fromValue = element.fromDate != null ? element.fromDate.format('YYYY-MM-DD') : null;
+                                criteriaItem.toValue = element.toDate != null ? element.toDate.format('YYYY-MM-DD') : null;
+                            }
+                            else if (field.props.type == 'Time') {
+                                criteriaItem.fromValue = element.fromTime != null ? element.fromTime : null;
+                                criteriaItem.toValue = element.toTime != null ? element.toTime : null;
+                            }
+                            else {
+                                criteriaItem.fromValue = element.fromValue;
+                                criteriaItem.toValue = element.toValue;
+                            }
+                        } else {
+                            criteriaItem.value = element.value;
+                        }
+                        self.push('criteria.data', criteriaItem)
+                    }
+                }
+
+                self.set('criteria.changed', !self.criteria.changed);
+
+                console.log(self.criteria)
+                console.log("_search")
+
+
+            },
+
+
+            _openDialog: function (e) {
+                var dialogId = e.model.item.name + "Dialog";
+                console.log(dialogId)
+                var element = this.querySelector('#' + dialogId);
+                element.open();
+            },
+
+            _setDate: function (e) {
+                var dialogId = e.model.item.name + "Dialog";
+                console.log(dialogId)
+                var element = this.querySelector('#' + dialogId);
+                element.close();
+            },
+
+            ready: function () {
+
+                var self = this;
+
+                // there is a problem with the ready, it is not really ready
+                // for this reason, i use timeout as a workaround
+                setTimeout(function () {
+
+                    //$$.execute("test");
+
+                    var vertical = self.$.vertical;
+                    var horizontal = self.$.horizontal;
+
+                    $(vertical).kendoSplitter({
+                        orientation: "vertical",
+                        panes: [
+                            { collapsible: true, resizable: true, size: "10%" },
+                            { collapsible: false, resizable: true, size: "90%" }
+                        ]
+                    });
+
+                    $(horizontal).kendoSplitter({
+                        panes: [
+                            { collapsible: true, resizable: true, size: "50%" },
+                            { collapsible: false, resizable: true, size: "50%" }
+                        ]
+                    });
+
+
+                }, 1000);
+
+
+                this.pageSize = 5;
+                this.falseValue = false;
+                this.trueValue = true;
+                this.fillRelationships = [];
+                this.fillFields = [];
+                this.selectedParentRowId = null;
+            }
+
+
+        });
+    </script>
+
+</dom-module>

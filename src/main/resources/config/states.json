@@ -1,0 +1,136 @@
+{
+    "maintenance": "action/maintenance",
+    "homes": [
+        {
+            "device": "mobile",
+            "state": "action/something"
+        },
+        {
+            "device": "desktop",
+            "state": "/"
+        }
+    ],
+    "states": [
+        {
+            "url": "layout",
+            "parent": "entity",
+            "device": "desktop",
+            "abstract": "true",
+            "views": [
+                {
+                    "name": "content@"
+                }
+            ]
+        },
+        {
+            "url": "layout",
+            "device": "mobile",
+            "abstract": "true",
+            "propertyFiles": ["global","language"],
+            "resolvers": [
+                "authorize"
+            ],
+            "views": [
+                {
+                    "name": "content@"
+                }
+            ]
+        },
+        {
+            "url": "signIn",
+            "device": "mobile",
+            "title": "global.menu.account.login",
+            "propertyFiles": ["login"],
+            "views": [
+                {
+                    "name": "content@"
+                }
+            ]
+        },
+        {
+            "url": "config",
+            "device": "all",
+            "parent": "layout",
+            "roles": "'ROLE_USER'",
+            "title": "global.menu.entities.config",
+            "propertyFiles": ["global","language"],
+            "views": [
+                {
+                    "name": "content2@layout"
+                }
+            ]
+        },
+        {
+            "url": "something",
+            "device": "all",
+            "parent": "layout",
+            "roles": "'ROLE_USER'",
+            "title": "global.menu.entities.something",
+            "propertyFiles": ["global","language"],
+            "__resolvers": [
+                "something",
+                "something2"
+            ],
+            "views": [
+                {
+                    "name": "content2@layout"
+                }
+            ]
+        },
+        {
+            "url": "something2",
+            "device": "mobile",
+            "parent": "layout",
+            "roles": "'ROLE_USER'",
+            "title": "global.menu.entities.something2",
+            "propertyFiles": ["global","language"],
+            "views": [
+                {
+                    "name": "content2@layout"
+                }
+            ]
+        },
+        {
+            "url": "something3",
+            "device": "desktop",
+            "parent": "layout",
+            "roles": "'ROLE_USER'",
+            "title": "global.menu.entities.something3",
+            "views": [
+                {
+                    "name": "content2@layout"
+                }
+            ]
+        },
+        {
+            "url": "index2",
+            "device": "desktop",
+            "parent": "layout",
+            "roles": "'ROLE_USER'",
+            "title": "global.menu.entities.index",
+            "directives": [
+                "turboModel",
+                "turboModelFull",
+                "testx.directive",
+                "this:test.directive"
+            ],
+            "views": [
+                {
+                    "name": "content2@layout"
+                }
+            ]
+        },
+        {
+            "url": "maintenance",
+            "device": "all",
+            "parent": "layout",
+            "roles": "",
+            "title": "global.menu.entities.maintenance",
+            "views": [
+                {
+                    "name": "content2@layout"
+                }
+            ]
+        }
+    ]
+}

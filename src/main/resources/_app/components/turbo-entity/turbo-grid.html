@@ -1,0 +1,592 @@
+<dom-module id="turbo-grid">
+
+    <link rel="import" href="../../../../imports/general-import.html">
+    <link rel="import" href="../../../../imports/jquery2-import.html">
+    <link rel="import" href="../../../../imports/lodash-import.html">
+    <link rel="import" href="../../../../imports/jq-pagination-import.html">
+    <link rel="import" href="../../../../imports/date-time-period-picker-import.html">
+    <link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+    <link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="../../components/turbo-entity/base-grid.html">
+    <link rel="import" href="../../../../_framework/_bl/utils/general-utils-import.html">
+    <link rel="import" href="../../../../bower_components/neon-animation/animations/scale-up-animation.html">
+    <link rel="import" href="../../../../bower_components/neon-animation/animations/fade-out-animation.html">
+    <link rel="import" href="../inputs/date-time-picker.html">
+    <link rel="import" href="../inputs/date-picker.html">
+    <link rel="import" href="../inputs/time-picker.html">
+    <link rel="import" href="../inputs/number-picker.html">
+
+    <template>
+
+        <style is="custom-style">
+
+            #deleteConfirmationDialog {
+                margin-top: 20px;
+            }
+
+            .flex {
+                @apply(--layout-horizontal);
+            }
+
+            /* gigantic class for demo purposes */
+            .medium.pagination {
+                margin: 30px 0; }
+
+            .medium.pagination a {
+                height: 40px;
+                width: 40px;
+                font-size: 30px;
+                line-height: 30px; }
+
+            .medium.pagination input {
+                width: 200px;
+                height: 40px;
+                font-size: 20px; }
+
+            paper-dialog.colored {
+                border: 2px solid;
+                border-color: var(--paper-green-500);
+                /*                background-color: var(--paper-light-green-50);
+                                color: var(--paper-green-500);*/
+            }
+
+            paper-dialog.size-position {
+                /*                position: fixed;
+                                top: 16px;
+                                right: 16px;*/
+                width: 400px;
+                height: 400px;
+                overflow: auto;
+            }
+
+        </style>
+
+        <paper-dialog id="deleteConfirmationDialog" horizontal-align="left" vertical-align="top"
+                      on-iron-overlay-closed="onCloseConfirmationDialog" no-cancel-on-outside-click>
+            <h2>Confirmation</h2>
+            <p>Are you sure to delete</p>
+            <div class="buttons">
+                <paper-button dialog-dismiss autofocus>No</paper-button>
+                <paper-button dialog-confirm>Yes</paper-button>
+            </div>
+        </paper-dialog>
+
+
+        <!--todo/kn.. connect the dialog to the add/edit in the grid-->
+
+        <paper-dialog id="dialog" class="size-position colored"
+                      on-iron-overlay-closed="onCancel" no-cancel-on-outside-click>
+
+            <div class="buttons">
+
+                <template is="dom-if" if="{{addMode}}">
+                    <paper-button on-tap="onAddUpdate" dialog-confirm>
+                        <iron-icon icon="add"></iron-icon>
+                        Add
+                    </paper-button>
+                </template>
+                <template is="dom-if" if="{{!addMode}}">
+                    <paper-button on-tap="onAddUpdate" dialog-confirm>
+                        <iron-icon icon="system-update-alt"></iron-icon>
+                        Update
+                    </paper-button>
+                </template>
+
+                <paper-button on-tap="onCancel" dialog-dismiss autofocus>
+                    <iron-icon icon="cancel"></iron-icon>
+                    Cancel
+                </paper-button>
+            </div>
+
+            <div id="xxx" class="container flex-end-align flex-wrap">
+                <!--todo/kn.. place this on the right side-->
+
+                <template is="dom-repeat" items="{{fillFields}}" as="field">
+
+                    <template is="dom-if" if="{{_hasType(field.props.type, 'String')}}">
+                        <paper-input id="dialog_{{modelName}}_{{field.name}}" class="input-size inline"
+                                     value="" label="{{field.name}}" always-float-label></paper-input>
+                        <br/>
+                    </template>
+                    <template is="dom-if" if="{{_hasType(field.props.type, 'Integer')}}">
+                        <number-picker id="dialog_{{modelName}}_{{field.name}}" size="{{field.length}}" name="{{field.name}}"
+                                       value="" is-decimal="{{globals.false}}"></number-picker>
+                        <br/>
+                    </template>
+                    <template is="dom-if" if="{{_hasType(field.props.type, 'Decimal')}}">
+                        <number-picker id="dialog_{{modelName}}_{{field.name}}" size="{{field.length}}" name="{{field.name}}"
+                                       value="" is-decimal="{{globals.true}}"></number-picker>
+                        <br/>
+                    </template>
+                    <template is="dom-if" if="{{_hasType(field.props.type, 'DateTime')}}">
+                        <date-time-picker id="dialog_{{modelName}}_{{field.name}}" class="inline" name="{{field.name}}"
+                                          ></date-time-picker>
+                        <br/>
+                    </template>
+                    <template is="dom-if" if="{{_hasType(field.props.type, 'Date')}}">
+                        <date-picker id="dialog_{{modelName}}_{{field.name}}" class="inline" name="{{field.name}}"
+                                     ></date-picker>
+                        <br/>
+                    </template>
+                    <template is="dom-if" if="{{_hasType(field.props.type, 'Time')}}">
+                        <time-picker id="dialog_{{modelName}}_{{field.name}}" class="inline" name="{{field.name}}"
+                                     ></time-picker>
+                        <br/>
+                    </template>
+                </template>
+
+
+            </div>
+
+        </paper-dialog>
+
+
+        <div id="paginator" class="medium pagination">
+            <a href="#" class="first" data-action="first">&laquo;</a>
+            <a href="#" class="previous" data-action="previous">&lsaquo;</a>
+            <input type="text" readonly="readonly"/>
+            <a href="#" class="next" data-action="next">&rsaquo;</a>
+            <a href="#" class="last" data-action="last">&raquo;</a>
+        </div>
+
+        <div class="container flex">
+            <base-grid id="baseGrid" columns="{{gridColumns}}"
+                       metadata="{{gridMetadata}}" data="{{gridData}}" grid-objects="{{gridObjects}}"></base-grid>
+        </div>
+
+    </template>
+
+
+    <script>
+
+        Polymer({
+            is: "turbo-grid",
+            properties: {
+                modelName: {
+                    type: String,
+                    observer: '_propertiesChanged'
+                },
+                pageSize: {
+                    type: Number,
+                    observer: '_propertiesChanged'
+                },
+                pageNumber: {
+                    type: Number,
+                    value: 1,
+                    observer: '_propertiesChanged'
+                },
+                selectedRowId: {
+                    type: Number,
+                    notify: true
+                },
+                fillRelationships: {
+                    type: Array,
+                    notify: true
+                },
+                fillFields: {
+                    type: Array,
+                    notify: true
+                },
+                hasParent: {
+                    type: Boolean,
+                    observer: '_propertiesChanged'
+                },
+                parentInfo: {
+                    type: Object,
+                    observer: '_propertiesChanged'
+                },
+                selectedParentId: {
+                    type: Object,
+                    observer: '_propertiesChanged'
+                },
+                criteria: {
+                    type: Object
+                }
+            },
+
+            observers: [
+                '_propertiesChanged(modelName, pageSize, pageNumber, hasParent, parentInfo, selectedParentId)',
+                '_criteriaChanged(criteria.changed)'
+            ],
+
+            getColumnInfo: function (field) {
+                var self = this;
+
+                var fieldType = field.props.type;
+                var fieldUIWidth = field.props.ui_width;
+                fieldUIWidth = fieldUIWidth != null && fieldUIWidth != '' ? fieldUIWidth : '100'
+                var completeFieldName = TM.aliasedFieldName(field);
+
+                var turboType = field.props.type;
+                var formatter = function formatter(row, cell, value, columnDef, dataContext) {
+                    if (G.isNullEmpty(value)) {
+                        return value;
+                    }
+                    //todo/kn.. provide formatting for the other types
+                    if (turboType == 'Integer') {
+
+                    } else if (turboType == 'Decimal') {
+                        return parseFloat(Math.round(value * 100) / 100).toFixed(2);
+                    } else if (turboType == 'Boolean') {
+
+                    } else if (turboType == 'Date' && G.isDateObject(value)) {
+                        value = moment(value).format("YYYY-MM-DD");
+                    } else if (turboType == 'Time' && G.isDateObject(value)) {
+                        value = moment(value).format("HH:mm");
+                    } else if (turboType == 'DateTime' && G.isDateObject(value)) {
+                        value = moment(value).format("YYYY-MM-DD HH:mm");
+                    } else {
+
+                    }
+                    return value;
+                };
+
+                var column = {
+                    id: completeFieldName,
+                    name: field.name,
+                    field: completeFieldName,
+                    formatter: formatter,
+                    width: parseInt(fieldUIWidth)
+                };
+
+                column.$$postUpdate = function (currentValue, newValue, args) {
+                    if (currentValue != newValue) {
+                        var item = args.item;
+                        // this method should be called just when the item is being edited
+                        //todo/kn.. this should be changed to check whether the id is null or not - after the id field is removed from the add/edit dialog
+                        if (item.addEdit == 'add') {
+                            return;
+                        }
+                        var rowId = TM.fieldValue(item, "id");
+                        console.log(self.modelName, args.column.name, fieldType, newValue, null, rowId);
+                        $$.executeModel('turboModel-updateField',
+                            [self.modelName, args.column.name, fieldType, newValue, rowId])
+                            .then(function (response) {
+                                console.log(response);
+                            });
+                    }
+                }
+                column.$$postUpdate.bind(self);
+
+                column.editor = Slick.Editors.Dynamic;
+                if (fieldType != null) {
+                    if (fieldType.toLowerCase() == "date") {
+                        column.$editor = "Date";
+                    } else if (fieldType.toLowerCase() == "datetime") {
+                        column.$editor = "DateTime";
+                    } else if (fieldType.toLowerCase() == "time") {
+                        column.$editor = "Time";
+                    } else if (fieldType.toLowerCase() == "decimal") {
+                        column.$editor = "Float";
+                    } else if (fieldType.toLowerCase() == "integer" || fieldType.toLowerCase() == "id") {
+                        column.$editor = "Integer";
+                    } else if (fieldType.toLowerCase() == "boolean") {
+                        column.$editor = "Checkbox";
+                    } else {
+                        column.$editor = "Text";
+                    }
+                }
+
+                return column;
+            },
+
+
+            _hasType: function (entityType, type) {
+                return entityType == type;
+            },
+
+            _shouldDisplayForEditing: function (entityType) {
+                return entityType == 'String' ||
+                entityType == 'Integer' ||
+                entityType == 'Decimal' ||
+                entityType == 'DateTime' ||
+                entityType == 'Date' ||
+                entityType == 'Time';
+            },
+
+            openAddEditDialog: function (element) {
+                var dialog = this.$.dialog;
+                if (!G.isNullEmpty(element)) {
+                    dialog.positionTarget = element;
+                }
+                dialog.open();
+            },
+
+            loadData: function (callback) {
+                if (
+                        this.modelName == null
+                        || this.pageNumber == null
+                        || this.pageSize == null
+                        || this.fillRelationships == null
+                        || this.hasParent == null
+                        || (this.hasParent && this.parentInfo == null)
+                ) {
+                    return;
+                }
+
+                var parentInfoFromChildSide = {};
+                if (this.hasParent) {
+                    parentInfoFromChildSide.parentFieldName = this.parentInfo.childFieldName;
+                    parentInfoFromChildSide.parentName = this.parentInfo.name;
+                    parentInfoFromChildSide.parentRelationshipType = this.parentInfo.relationshipType;
+                    parentInfoFromChildSide.mappedBy = this.parentInfo.childMappedBy;
+                    parentInfoFromChildSide.selectedParentId = this.selectedParentId;
+                }
+
+                /**
+                 * load the fillFields just once
+                 * otherwise it will trigger reloading elements in the parent object which causing problem
+                 */
+                var loadFillfFields = false;
+                if (this.fillFields.length == 0) {
+                    loadFillfFields = true;
+                }
+
+                var self = this;
+
+                var paginationOptions = {
+                    pageNumber: this.pageNumber,
+                    pageSize: this.pageSize,
+                    sort: null
+                };
+                var sortFields = null;
+
+                var criteriaData = this.criteria != null ? this.criteria.data : [];
+                $$.executeModel('turboModel-read', [this.modelName, criteriaData, paginationOptions, sortFields, parentInfoFromChildSide])
+                    .then(function (response) {
+                        var metadata = response.metadata;
+                        var data = response.data;
+                        var totalItems = response.totalItems;
+
+                        var colHeaders = [];
+                        var columns = [];
+
+                        self.splice('fillRelationships', 0, self.fillRelationships.length)
+                        if (loadFillfFields) {
+                            self.splice('fillFields', 0, self.fillFields.length)
+                        }
+
+                        var fields = G.toArray(metadata.fields);
+                        for (var i = 0; i < fields.length; i++) {
+                            var field = fields[i];
+                            if (loadFillfFields) {
+                                self.push('fillFields', field);
+                            }
+                            if (field.props.rel_type != null && field.props.rel_type != '') {
+                                self.push('fillRelationships', {
+                                    name: self.modelName,
+                                    parentFieldType: field.props.type,
+                                    parentFieldName: field.name,
+                                    relationshipType: field.props.rel_type,
+                                    childFieldName: field.props.rel_referencedBy,
+                                    childMappedBy: field.props.rel_mappedBy
+                                })
+                            }
+
+                            var isRelationShipColumnWithKey = (field.props.rel_type == 'manytoone' || field.props.rel_type == 'onetoone')
+                                && metadata.keys[field.props.type] != null && metadata.keys[field.props.type] != '';
+
+                            if (field.props.rel_type == null
+                                || field.props.rel_type == ''
+                                || isRelationShipColumnWithKey
+                            ) {
+                                var columnInfo = self.getColumnInfo(field);
+                                if (isRelationShipColumnWithKey) {
+                                    columnInfo.$editor = "None";
+                                }
+                                columns.push(columnInfo);
+                                colHeaders.push(field.name);
+                            }
+                        }
+
+                        callback(columns, colHeaders, data, totalItems);
+                    });
+            },
+
+            attached: function () {
+                var self = this;
+                var paginator = this.$.paginator;
+                $(paginator).jqPagination({
+                    paged: function (pageNumber) {
+                        self.pageNumber = pageNumber;
+                    }
+                });
+            },
+
+/*            onCloseConfirmationDialog: function (e) {
+                var self = this;
+                if (e.detail.confirmed) {
+                    self.selected = self.hot.getSelected();
+                    var startRow = self.selected[0];
+                    var endRow = self.selected[2];
+                    var ids = [];
+                    for (var i = startRow; i <= endRow; i++) {
+                        ids.push(self.hot.getDataAtRowProp(i, 'id'))
+                    }
+                    $$.executeModel('turboModel-remove', [self.modelName, ids])
+                        .then(function (response) {
+                            var result = response;
+                            console.log(result);
+                            if (result > 0) {
+                                self.hot.alter('remove_row', parseInt(startRow), endRow - startRow + 1);
+                            }
+                        });
+                }
+            },*/
+
+
+            /**
+             * when the criterias are changed, load the table again
+             */
+            _criteriaChanged: function (params) {
+                this._propertiesChanged();
+            },
+
+            _propertiesChanged: function () {
+
+                var self = this;
+                this.debounce('propertiesChanged', function () {
+                    self.hot_addingNewRow = false;
+                    self.loadData(function (columns, colHeaders, data, totalItems) {
+
+                        if (totalItems) {
+                            self.maxPage = Math.ceil(totalItems / self.pageSize);
+                        } else {
+                            self.maxPage = 1;
+                        }
+                        var paginator = self.$.paginator;
+                        $(paginator).jqPagination('option', 'max_page', self.maxPage);
+                        var gridObject = self.gridObjects[0];
+                        gridObject.setColumns(columns);
+                        gridObject.resizeCanvas();
+
+                        self.splice('gridData', 0, self.gridData.length)
+                        for (var i = 0; i < data.length; i++) {
+                            var item = data[i];
+                            DB.prefixFields(self.modelName, item);
+                            self.push('gridData', item);
+                        }
+                        self.set("gridMetadata.refresh", true);
+
+                    });
+
+                }, 500);
+
+            },
+
+
+            onCancel: function () {
+
+            },
+
+
+            onAddUpdate: function() {
+                var self = this;
+                assert.isTrue(!G.isNullEmpty(self.dialogItem), "!G.isNullEmpty(self.dialogItem)")
+                self.fillFields.forEach(function (field) {
+                    if (self._shouldDisplayForEditing(field.props.type)) {
+                        var element = self.querySelector('#dialog_' + self.modelName + "_" + field.name);
+                        var modelAlias = field["modelAlias"];
+                        if (G.isNullEmpty(modelAlias)) {
+                            modelAlias = "_this";
+                        }
+                        var fieldAliasName = modelAlias + '_' + field.name;
+                        self.dialogItem[fieldAliasName] = DB.convertTypeForWire(field.props.type, element.value);
+                    }
+                });
+
+                console.log("self.dialogItem: ", self.dialogItem)
+
+                $$.executeModel('turboModel-saveUpdate', [
+                    self.modelName,
+                    self.dialogItem,
+                    self.dialogItem.addEdit == 'add' ? null : self.dialogItem.id,
+                    self.parentInfo
+                ])
+                    .then(function (updatedItem) {
+                        DB.prefixFields(self.modelName, updatedItem);
+                        updatedItem.addEdit = self.dialogItem.addEdit;
+                        self.$.baseGrid.fire('onAddEditGridRow', {item: updatedItem});
+                    })
+            },
+
+
+            ready: function () {
+                var self = this;
+                this.fillRelationships = this.fillRelationships || [];
+                this.fillFields = this.fillFields || [];
+
+                self.gridObjects = [];
+                self.gridColumns = [
+                    {id: "loading", name: "Loading...", field: "loading", width: 520, editor: Slick.Editors.None}
+                ];
+                self.gridMetadata = {
+                    title: self.modelName,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'up', 'down'],
+                    type: 'grid',
+                    width: '900px',
+                    height: '400px',
+                    refresh: false,
+                    parent: {
+                        field: self.modelName,
+                        node: 'baseGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.gridData = [];
+
+                // signalize to the children that the parent selection is changed
+                self.$.baseGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                    var rowIndex = e.detail.rows[0];
+                    if(rowIndex==null) {
+                        self.selectedRowId = null;
+                    } else {
+                        var dataView = self.gridObjects[0].getData();
+                        var item = dataView.getItemByIdx(rowIndex);
+                        self.selectedRowId = TM.fieldValue(item, "id");
+                    }
+                });
+
+                self.$.baseGrid.addEventListener('onAddEditButtonClick', function (e) {
+                    var item = e.detail.item;
+                    assert.isTrue(!G.isNullEmpty(item), "!G.isNullEmpty(item)");
+                    self.dialogItem = item;
+                    self.fillFields.forEach(function (field) {
+                        if(self._shouldDisplayForEditing(field.props.type)) {
+                            var element = self.querySelector('#dialog_' + self.modelName + "_" + field.name);
+                            console.log("item[field.name]: ", item[field.name]);
+                            element.value = TM.fieldValue(item, field.name);
+                        }
+                    });
+                    self.addMode = (item.addEdit == 'add');
+                    self.openAddEditDialog(self.$.baseGrid);
+                })
+
+                self.$.baseGrid.addEventListener('onDeleteButtonClick', function (e) {
+                    var item = e.detail.item;
+                    var activeRow = e.detail.activeRow;
+                    assert.isTrue(!G.isNullEmpty(item), "!G.isNullEmpty(item)");
+                    assert.isTrue(!G.isNullEmpty(activeRow), "!G.isNullEmpty(activeRow)");
+                    $$.executeModel('turboModel-remove', [
+                        self.modelName,
+                        [TM.fieldValue(item,'id')]
+                    ])
+                        .then(function (result) {
+                            self.$.baseGrid.fire('onDeleteGridRow', {activeRow: activeRow});
+                        })
+                })
+
+            }
+
+
+        });
+    </script>
+
+</dom-module>

@@ -1,0 +1,91 @@
+<link rel="import" href="../../../../_framework/_bl/utils/general-utils-import.html">
+
+<dom-module id="time-picker">
+    <template>
+
+        <style>
+            .container {
+                @apply(--layout-horizontal);
+                @apply(--layout-end);
+            }
+
+            paper-input-container {
+                padding-left: 5px;
+                padding-right: 10px;
+            }
+
+            #time_picker {
+                width: 40px;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+
+
+        </style>
+
+        <paper-input-container always-float-label>
+            <label>{{name}}</label>
+            <div class="container">
+                <input id="time_picker" type="text">
+            </div>
+        </paper-input-container>
+
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+        is: 'time-picker',
+
+        properties: {
+            name: {
+                type: String
+            },
+            value: {
+                type: Date,
+                reflectToAttribute: true,
+                notify: true,
+                observer: 'valueChanged'
+            }
+        },
+
+        valueChanged: function () {
+            var time_picker = this.$.time_picker;
+            if (!G.isNullEmpty(this.value)) {
+                console.log("$(time_picker).TimePickerAlone('setValue', this.value):", this.value)
+                $(time_picker).TimePickerAlone('setValue', this.value);
+            }
+        },
+
+        ready: function () {
+
+            var self = this;
+            setTimeout(function () {
+
+                var time_picker = self.$.time_picker;
+                var timeFormat = 'HH:mm';
+
+                $(time_picker).timepickeralone({
+                    hours: true,
+                    minutes: true,
+                    seconds: false,
+                    ampm: true,
+                    defaultTime: '00:00',
+                    inputFormat: timeFormat,
+                    onChange: function (str, datetime) {
+                        if (!G.equalDatetime(datetime, self.value)) {
+                            self.value = datetime;
+                        }
+                    }
+                });
+
+                $(time_picker).TimePickerAlone('setValue', self.value);
+
+            }, 100);
+
+
+        }
+
+
+    });
+</script>

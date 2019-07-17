@@ -1,0 +1,1122 @@
+{
+  "props": {
+    "version": 148
+  },
+  "models": [{
+    "name": "dbpatch",
+    "version": "1",
+    "$key": "",
+    "fields": [{
+      "name": "id",
+      "type": "ID",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "before",
+      "type": "Boolean",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "name",
+      "type": "String",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "created_on",
+      "type": "DateTime",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "version",
+      "type": "Integer",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }],
+    "constraints": []
+  }, {
+    "name": "dbversion",
+    "version": "1",
+    "$key": "",
+    "fields": [{
+      "name": "id",
+      "type": "ID",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "modified_on",
+      "type": "DateTime",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "version",
+      "type": "Integer",
+      "nullable": false,
+      "length": "",
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": false,
+        "width": "80",
+        "enableEdit": false,
+        "preview": false
+      },
+      "search": {
+        "active": false,
+        "like": false,
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }],
+    "constraints": []
+  }, {
+    "name": "Student",
+    "version": "1",
+    "$key": "",
+    "constraints": [{
+      "parent": "Student",
+      "name": "constraint1",
+      "type": "Unique",
+      "fields": ["weight", "age"]
+    }, {
+      "parent": "Student",
+      "name": "newConstraint1",
+      "type": "Unique",
+      "nullable": true,
+      "length": "",
+      "fields": ["weight"]
+    }, {
+      "parent": "Student",
+      "name": "newConstraint",
+      "type": "Index",
+      "nullable": true,
+      "length": "",
+      "fields": ["age", "birthDate"]
+    }],
+    "fields": [{
+      "name": "name",
+      "type": "String",
+      "nullable": true,
+      "length": "",
+      "general": {
+        "generator": "hilo",
+        "generatorName": "timestampGenerator",
+        "maxLow": "32767",
+        "primaryKeyValue": "hi_value"
+      },
+      "ui": {
+        "table": true,
+        "width": "80",
+        "enableEdit": true,
+        "preview": true
+      },
+      "search": {
+        "active": true,
+        "like": true,
+        "range": false
+      },
+      "relationship": {
+        "relationshipType": "",
+        "mappedBy": "",
+        "referencedBy": "",
+        "cascade": "All",
+        "orphanRemoval": true,
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": "200"
+      }
+    }, {
+      "name": "age",
+      "type": "Integer",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": true
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "birthDate",
+      "type": "Date",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": true
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "weight",
+      "type": "Decimal",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": true
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "id",
+      "type": "ID",
+      "nullable": true,
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "teachers",
+      "type": "Teacher",
+      "nullable": true,
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "ManyToMany",
+        "referencedBy": "students",
+        "mappedBy": "students",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "address",
+      "type": "Address",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "manytoone",
+        "referencedBy": "student",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }]
+  }, {
+    "name": "Teacher",
+    "version": "1",
+    "$key": "",
+    "constraints": [{
+      "parent": "Teacher",
+      "name": "newConstraint",
+      "type": "Unique",
+      "nullable": true,
+      "length": "",
+      "fields": ["occupationYears"]
+    }],
+    "fields": [{
+      "name": "name",
+      "type": "String",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "occupationYears",
+      "type": "Integer",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "id",
+      "type": "ID",
+      "nullable": true,
+      "general": {
+        "generator": "auto",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "students",
+      "type": "Student",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "ManyToMany",
+        "referencedBy": "teachers",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "creditCard",
+      "type": "CreditCard",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "OneToOne",
+        "referencedBy": "teacher",
+        "mappedBy": "",
+        "cascade": "All",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }]
+  }, {
+    "name": "Address",
+    "version": "1",
+    "$key": "${country}",
+    "constraints": [],
+    "fields": [{
+      "name": "country",
+      "type": "String",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "city",
+      "type": "String",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "street",
+      "type": "String",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "number",
+      "type": "Integer",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "id",
+      "type": "ID",
+      "nullable": true,
+      "general": {
+        "generator": "hilo",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "student",
+      "type": "Student",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "onetomany",
+        "referencedBy": "address",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }]
+  }, {
+    "name": "CreditCard",
+    "version": "1",
+    "$key": "",
+    "constraints": [],
+    "fields": [{
+      "name": "number",
+      "type": "Integer",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "name",
+      "type": "String",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "expirationDate",
+      "type": "Date",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": true,
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": true,
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "id",
+      "type": "ID",
+      "nullable": true,
+      "general": {
+        "generator": "hilo",
+        "generatorName": "timestampGenerator",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "",
+        "referencedBy": "",
+        "mappedBy": "",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": "",
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }, {
+      "name": "teacher",
+      "type": "Teacher",
+      "nullable": true,
+      "general": {
+        "generator": "",
+        "generatorName": "",
+        "maxLow": "",
+        "primaryKeyValue": ""
+      },
+      "ui": {
+        "table": "",
+        "width": "",
+        "enableEdit": "",
+        "preview": ""
+      },
+      "search": {
+        "active": "",
+        "like": "",
+        "range": ""
+      },
+      "relationship": {
+        "relationshipType": "OneToOne",
+        "referencedBy": "creditCard",
+        "mappedBy": "creditCard",
+        "cascade": "",
+        "orphanRemoval": "",
+        "orderBy": "",
+        "mapKey": "",
+        "eager": false,
+        "fetchMode": "",
+        "batchSize": ""
+      },
+      "length": ""
+    }]
+  }]
+}

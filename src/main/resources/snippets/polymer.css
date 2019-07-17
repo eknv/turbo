@@ -1,0 +1,52 @@
+
+
+:host > ::content .spacer_5 {
+  height: 5px;
+}
+
+:host > ::content .spacer_10 {
+  height: 10px;
+}
+
+:host > ::content .item-details-form {
+  top: 20%;
+  left: 20%;
+  line-height: 20px;
+  background-color: #f1c40f;
+  text-align: left;
+  border-radius: 5px;
+  !* needed styles for the overlay *!
+  z-index: 10; !* keep on top of other elements on the page *!
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+:host > ::content .item-details-form-buttons {
+  float: right;
+}
+
+:host > ::content .item-details-label {
+  margin-left: 10px;
+  margin-top: 20px;
+  display: block;
+  font-weight: bold;
+}
+
+:host > ::content .item-details-editor-container {
+  width: 200px;
+  height: 20px;
+  border: 1px solid silver;
+  background: white;
+  display: block;
+  margin: 10px;
+  margin-top: 4px;
+  padding: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+
+
+
+
+
+

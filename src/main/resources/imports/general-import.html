@@ -1,0 +1,36 @@
+
+<!--General dependencies necessary on the client side-->
+
+<script src='../../../../imports/xregexp/xregexp-all.js'></script>
+
+<script src='../../../../bower_components/bluebird/js/browser/bluebird.js'></script>
+<script type="application/javascript">
+    Promise.config({
+        // Enable warnings
+        warnings: true,
+        // Enable long stack traces
+        longStackTraces: false,
+        // Enable cancellation
+        cancellation: true,
+        // Enable monitoring
+        monitoring: true
+    });
+</script>
+
+<script src='../../../../_framework/_bl/utils/q-utils.js'></script>
+
+<script  src="chai/chai.js"></script>
+<script type="application/javascript">
+    var assert = chai.assert;    // Using Assert style
+    var expect = chai.expect;    // Using Expect style
+    var should = chai.should();  // Using Should style
+</script>
+
+<script src='../../../../_framework/_bl/utils/general-utils.js'></script>
+<script src='../../../../_framework/_bl/utils/string-utils.js'></script>
+<script src='../../../../_framework/_bl/utils/db-utils.js'></script>
+<script src='../../../../bower_components/lovefield/dist/lovefield.js'></script>
+<script src='../../../../_framework/_bl/utils/db.cln.js'></script>
+<script src='../../../../_framework/_bl/utils/model-utils.srv.js'></script>
+
+<script src='action_service/ActionService.js'></script>

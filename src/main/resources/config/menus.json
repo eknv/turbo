@@ -1,0 +1,45 @@
+{ "menus": [
+    {
+        "active": "active",
+        "device": "all",
+        "icon": "glyphicon glyphicon-th-list",
+        "title": "global.menu.entities.main",
+        "subs": [
+            {
+                "active": "active",
+                "device": "all",
+                "icon": "glyphicon glyphicon-asterisk",
+                "title": "global.menu.entities.config",
+                "state": "config"
+            },
+            {
+                "active": "active",
+                "device": "all",
+                "icon": "glyphicon glyphicon-asterisk",
+                "title": "global.menu.entities.something",
+                "state": "something"
+            },
+            {
+                "active": "active",
+                "device": "mobile",
+                "icon": "glyphicon glyphicon-asterisk",
+                "title": "global.menu.entities.something2",
+                "state": "something2"
+            },
+            {
+                "active": "active",
+                "device": "desktop",
+                "icon": "glyphicon glyphicon-asterisk",
+                "title": "global.menu.entities.something3",
+                "state": "something3"
+            },
+            {
+                "active": "active",
+                "device": "desktop",
+                "icon": "glyphicon glyphicon-asterisk",
+                "title": "global.menu.entities.index2",
+                "state": "index2"
+            }
+        ]
+    }
+]}

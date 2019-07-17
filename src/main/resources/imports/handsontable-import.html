@@ -1,0 +1,210 @@
+
+<script type="text/javascript" src="../../../../bower_components/handsontable/dist/handsontable.full.min.js"></script>
+<link rel="stylesheet" media="screen" href="../../../../bower_components/handsontable/dist/handsontable.full.min.css">
+
+<script type="text/javascript" src="../../../../bower_components/jqPagination/js/jquery.jqpagination.min.js"></script>
+<link rel="stylesheet" media="screen" href="../../../../bower_components/jqPagination/css/jqpagination.css">
+
+<link rel="import" href="jquery-ui-import.html">
+<link rel="import" href="jquery-ui-timepicker-addon-import.html">
+
+
+<style>
+
+  .dateTimeInputEditor {
+    padding: 5px 7px;
+    position: absolute;
+    font-size:22px;
+  }
+
+</style>
+
+
+<script>
+
+
+  var DateTimeEditor = Handsontable.editors.BaseEditor.prototype.extend();
+
+  DateTimeEditor.prototype.onBeforeKeyDown = function (event) {
+
+    console.log("been inside onBeforeKeyDown..")
+
+    switch (event.keyCode) {
+      case Handsontable.helper.KEY_CODES.ARROW_UP:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.ARROW_DOWN:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.ARROW_RIGHT:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.ARROW_LEFT:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.ENTER:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.F2:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.TAB:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.HOME:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.END:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.PAGE_DOWN:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.PAGE_UP:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+    }
+  }
+
+
+  DateTimeEditor.prototype.afterOnCellMouseDown = function (event) {
+
+    console.log("been inside afterOnCellMouseDown..")
+
+    switch (event.detail) {
+
+      case Handsontable.helper.KEY_CODES.MOUSE_LEFT:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.MOUSE_RIGHT:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+      case Handsontable.helper.KEY_CODES.MOUSE_MIDDLE:
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        break;
+
+    }
+  }
+
+  DateTimeEditor.prototype.defaultDateFormat = 'yy-mm-dd';
+  DateTimeEditor.prototype.defaultTimeFormat = 'HH:mm:ss';
+
+  DateTimeEditor.prototype.init = function(){
+    // Create detached node, add CSS class and make sure its not visible
+    this.input = document.createElement('INPUT');
+    Handsontable.Dom.addClass(this.input, 'dateTimeInputEditor');
+    this.input.style.display = 'none';
+    // Attach node to DOM, by appending it to the container holding the table
+    this.instance.rootElement.appendChild(this.input);
+  };
+
+  // Create options in prepare() method
+  DateTimeEditor.prototype.prepare = function(){
+    var self = this;
+    Handsontable.editors.BaseEditor.prototype.prepare.apply(this, arguments);
+    DateTimeEditor.prototype.textBox = $(this.input);
+    var options = this.cellProperties.dtOptions;
+    if(options.type=='date') {
+      DateTimeEditor.prototype.textBox.datepicker({
+        dateFormat: options.dateFormat || DateTimeEditor.prototype.defaultDateFormat,
+        closeText: "Close",
+        onSelect: function(dateText, inst) {
+          self.instance.selectCell(self.row, self.col);
+          self.instance.getActiveEditor().beginEditing();
+          self.input.value = dateText;
+          self.instance.getActiveEditor().finishEditing();
+        }
+      });
+    } else if (options.type=='time') {
+      DateTimeEditor.prototype.textBox.timepicker({
+        timeFormat: options.timeFormat || DateTimeEditor.prototype.defaultTimeFormat,
+        controlType: 'select',
+        oneLine: true,
+        closeText: "Close",
+        onSelect: function(dateText, inst) {
+          self.instance.selectCell(self.row, self.col);
+          self.instance.getActiveEditor().beginEditing();
+          self.input.value = dateText;
+        }
+      });
+    } else if (options.type=='datetime') {
+      DateTimeEditor.prototype.textBox.datetimepicker({
+        dateFormat: options.dateFormat || DateTimeEditor.prototype.defaultDateFormat,
+        timeFormat: options.timeFormat || DateTimeEditor.prototype.defaultTimeFormat,
+        controlType: 'select',
+        oneLine: true,
+        closeText: "Close",
+        onSelect: function(dateText, inst) {
+          self.instance.selectCell(self.row, self.col);
+          self.instance.getActiveEditor().beginEditing();
+          self.input.value = dateText;
+        }
+      });
+    } else {
+      throw new Error("Possible options for the type of the dtPicker: date, time and datetime")
+    }
+
+  };
+
+  DateTimeEditor.prototype.getValue = function () {
+    return this.input.value;
+  };
+
+  DateTimeEditor.prototype.setValue = function (value) {
+    this.input.value = value;
+  };
+
+  DateTimeEditor.prototype.open = function () {
+    var width = Handsontable.Dom.outerWidth(this.TD);
+    var height = Handsontable.Dom.outerHeight(this.TD);
+    var rootOffset = Handsontable.Dom.offset(this.instance.rootElement);
+    var tdOffset = Handsontable.Dom.offset(this.TD);
+    this.input.style.height = height + 'px';
+    this.input.style.minWidth = width + 'px';
+    //make sure that list positions matches cell position
+    this.input.style.top = tdOffset.top - rootOffset.top + 'px';
+    this.input.style.left = tdOffset.left - rootOffset.left + 'px';
+    this.input.style.margin = '0px';
+
+    this.input.style.display = 'block';
+  };
+
+  DateTimeEditor.prototype.close = function () {
+    this.input.style.display = 'none';
+  };
+
+  DateTimeEditor.prototype.focus = function(){
+    this.input.focus();
+  };
+
+  Handsontable.editors.registerEditor('dtPicker', DateTimeEditor);
+
+</script>
+

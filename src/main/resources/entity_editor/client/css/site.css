@@ -1,0 +1,30 @@
+
+.grid {
+    height: 250px;
+}
+
+.pink {
+    color: pink;
+}
+
+.blue {
+    color: blue;
+}
+
+input::-webkit-input-placeholder {
+    color: #828282 !important;
+}
+
+input:-moz-placeholder {
+    /* Firefox 18- */
+    color: #828282 !important;
+}
+
+input::-moz-placeholder {
+    /* Firefox 19+ */
+    color: #828282 !important;
+}
+
+input:-ms-input-placeholder {
+    color: #828282 !important;
+}

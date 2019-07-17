@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Entity Editor</title>
+
+    <script src="client/lib/angular-1.5.0.min.js"></script>
+    <script src="client/lib/angular-route-1.5.0.min.js"></script>
+    <script src="client/lib/angular-animate-1.5.0.min.js"></script>
+    <script src="client/lib/jquery-2.2.0.min.js"></script>
+
+    <script src="client/lib/ng-lodash-4.0.1.min.js"></script>
+
+    <link href="client/lib/angular-material-1.0.0.min.css" rel="stylesheet">
+    <script src="client/lib/angular-aria-1.4.8.min.js"></script>
+    <script src="client/lib/angular-messages-1.4.8.min.js"></script>
+    <script src="client/lib/angular-material-1.0.0.min.js"></script>
+
+    <link href="client/lib/bootstrap-3.3.6.min.css" rel="stylesheet">
+    <link href="client/lib/ui-bootstrap-1.1.2-csp.css" rel="stylesheet">
+    <script src="client/lib/ui-bootstrap-1.1.2.min.js"></script>
+    <script src="client/lib/ui-bootstrap-tpls-1.1.2.min.js"></script>
+
+    <script src="client/lib/ui-grid.min.js"></script>
+    <link rel="stylesheet" href="client/lib/ui-grid.min.css">
+
+    <script src="client/lib/select-0.14.8.min.js"></script>
+    <link rel="stylesheet" href="client/lib/select-0.14.8.min.css">
+    <link rel="stylesheet" href="client/lib/select2-3.4.5.css">
+
+    <script src="client/client.js"></script>
+    <link rel="stylesheet" href="client/css/site.css"/>
+
+    <script src="client/directives/autoForm.js"></script>
+    <script src="client/services/modalService.js"></script>
+
+</head>
+<body ng-app="entityEditor">
+
+<div ng-controller="cfgController" id="popupContainer">
+    <div>
+        <nav class="navbar navbar-inverse" role="navigation" style="padding-left:130px;">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#/">Home<span class="sr-only">(current)</span></a></li>
+                <li><a href="#/about">About us</a></li>
+                <li><a href="#/about">Read tutorial</a></li>
+            </ul>
+        </nav>
+    </div>
+    <br/>
+
+    <div ng-view class="jumbotron"></div>
+</div>
+</body>
+</html>

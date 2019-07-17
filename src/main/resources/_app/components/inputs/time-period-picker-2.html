@@ -1,0 +1,107 @@
+
+<dom-module id="time-period-picker">
+    <template>
+
+        <style>
+            .container {
+                @apply(--layout-horizontal);
+                @apply(--layout-end);
+            }
+
+            paper-input-container {
+                padding-left: 5px;
+                padding-right: 10px;
+            }
+
+            #time_picker_from {
+                width: 40px;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+
+            #time_picker_to {
+                width: 40px;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+
+
+        </style>
+
+        <paper-input-container always-float-label>
+            <label>{{name}}</label>
+            <div class="container">
+                <input id="time_picker_from" type="text">
+                -
+                <input id="time_picker_to" type="text">
+            </div>
+        </paper-input-container>
+
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+        is: 'time-period-picker',
+
+        properties: {
+            name: {
+                type: String
+            },
+            fromTime: {
+                type: String,
+                reflectToAttribute: true,
+                notify: true
+            },
+            toTime: {
+                type: String,
+                reflectToAttribute: true,
+                notify: true
+            }
+        }
+        ,
+
+
+        ready: function () {
+
+            var self = this;
+
+            setTimeout(function () {
+
+                var time_picker_from = self.$.time_picker_from;
+                var time_picker_to = self.$.time_picker_to;
+                $.timepicker.timeRange(
+                        $(time_picker_from),
+                        $(time_picker_to),
+                        {
+                            timeFormat: 'HH:mm',
+                            stepMinute: 10,
+                            addSliderAccess: true,
+                            sliderAccessArgs: {touchonly: false},
+                            start: {
+                                onCloseCallback: function (selectedTime, inst) {
+                                    self.fromTime = $(time_picker_from).val();
+                                    self.toTime = $(time_picker_to).val();
+                                }
+                            },
+                            end: {
+                                onCloseCallback: function (selectedTime, inst) {
+                                    self.fromTime = $(time_picker_from).val();
+                                    self.toTime = $(time_picker_to).val();
+                                }
+                            }
+
+                        }
+                );
+
+                $(time_picker_from).timepicker('setTime', self.fromTime);
+                $(time_picker_to).timepicker('setTime', self.toTime);
+
+            }, 100);
+
+
+        }
+
+
+    });
+</script>

@@ -1,0 +1,27 @@
+<div class="form-group row" ng-repeat='(key, value) in section'>
+
+    <div ng-if="isOption(key) && !isDisabled(key)" class="col-sm-12">
+        <label>{{key}}</label>
+        <select ng-model="section[key]" class="form-control"
+                ng-options="item for item in getOptions(key)"
+                ng-change="updateObject(key)"> </select>
+    </div>
+
+    <div ng-if="isBoolean(key) && !isDisabled(key)">
+        <div class="col-sm-3">
+            <label>{{key}}</label>
+            <input class="form-control" type="checkbox"
+                   ng-model="section[key]"
+                   ng-keyup="updateObject(key)">
+        </div>
+        <div class="col-sm-9"></div>
+    </div>
+
+    <div ng-if="isText(key) && !isDisabled(key)" class="col-sm-12">
+        <label>{{key}}</label>
+        <input class="form-control" type="text"
+               ng-model="section[key]"
+               ng-keyup="updateObject(key)">
+    </div>
+
+</div>

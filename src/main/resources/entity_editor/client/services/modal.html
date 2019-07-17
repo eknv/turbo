@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <h3>{{modalOptions.headerText}}</h3>
+</div>
+<form ng-submit="modalOptions.submit()">
+    <div class="modal-body">
+        <input type="text" data-ng-model="newEntity.name" auto-focus="true" class="input-lg" placeholder="Entity Name">
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn" data-ng-click="modalOptions.close()">{{modalOptions.closeButtonText}}</button>
+        <button type="submit" class="btn btn-primary" data-ng-click="modalOptions.ok(newEntity)">
+            {{modalOptions.actionButtonText}}
+        </button>
+    </div>
+</form>

@@ -1,0 +1,88 @@
+
+<link rel="import" href="../../../imports/date-time-period-picker-import.html"/>
+
+
+<dom-module id="date-time-picker">
+    <template>
+
+        <style>
+            paper-input-container {
+                padding-left:5px;
+                padding-right:10px;
+            }
+        </style>
+
+        <paper-input-container always-float-label>
+            <label>{{name}}</label>
+            <input id="date_time_picker" type="text"/>
+        </paper-input-container>
+
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+        is: 'date-time-picker',
+
+        properties: {
+            name: {
+                type: String
+            },
+            value: {
+                type: Object,
+                reflectToAttribute: true,
+                notify: true,
+                observer: 'valueChanged'
+            }
+        },
+
+        valueChanged: function () {
+            var date_time_picker = this.$.date_time_picker;
+            if (!G.isNullEmpty(this.value)) {
+                $(date_time_picker).periodpicker('value', [moment(this.value).format("YYYY-MM-D HH:mm:ss")]);
+            }
+        },
+
+        ready: function () {
+
+            var self = this;
+
+            setTimeout(function () {
+
+                var date_time_picker = self.$.date_time_picker;
+                var options = {
+                    timepicker: true,
+                    tabIndex: 0,
+                    formatDate: 'YYYY-MM-D',
+                    formatDateTime: 'YYYY-MM-D HH:mm:ss',
+                    norange: true,
+                    cells: [1, 1],
+                    animation: true,
+                    likeXDSoftDateTimePicker: true,
+                    hideAfterSelect: true,
+                    onOkButtonClick: function () {
+                        if (this.period != null && this.period.length > 0) {
+                            self.value = this.period[0];
+                        }
+                    },
+                    onAfterHide: function () {
+                        if (this.period != null && this.period.length > 0) {
+                            self.value = this.period[0];
+                        }
+                    },
+                    onClearButtonClick: function () {
+                        self.value = null;
+                    }
+                };
+
+                $(date_time_picker).periodpicker(options);
+                $(date_time_picker).periodpicker('value', [self.value]);
+
+            }, 100);
+
+
+        }
+
+
+    });
+</script>

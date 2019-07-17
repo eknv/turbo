@@ -1,0 +1,963 @@
+<dom-module id="base-grid">
+
+    <link rel="import" href="../../../../imports/slickgrid-import.html">
+    <link rel="import" href="../../../../bower_components/paper-alert-dialog/paper-alert-dialog.html"/>
+    <link rel="import" href="../../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html"/>
+    <link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+    <link rel="import" href="../../../../bower_components/iron-icons/av-icons.html">
+    <link rel="import" type="css" href="../../../../imports/css/common.css">
+    <link rel="import" href="../../../../_framework/_bl/utils/nummeric-utils-import.html">
+
+    <template>
+
+        <style is="custom-style">
+
+            .flex {
+                @apply(--layout-horizontal);
+            }
+
+            #deleteConfirmationDialog {
+                margin-top: 20px;
+            }
+
+            #grid {
+                width: var(--grid-width);
+                height: var(--grid-height);
+            }
+
+            :host > ::content .spacer_5 {
+                height: 5px;
+            }
+
+            :host > ::content .spacer_10 {
+                height: 10px;
+            }
+
+            :host > ::content .item-details-form {
+                top: 20%;
+                left: 20%;
+                line-height: 20px;
+                background-color: #f1c40f;
+                text-align: left;
+                border-radius: 5px;
+                /* needed styles for the overlay */
+                z-index: 10; /* keep on top of other elements on the page */
+                box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            }
+
+            :host > ::content .item-details-form-buttons {
+                float: right;
+            }
+
+            :host > ::content .item-details-label {
+                margin-left: 10px;
+                margin-top: 20px;
+                display: block;
+                font-weight: bold;
+            }
+
+            :host > ::content .item-details-editor-container {
+                width: 200px;
+                height: 20px;
+                border: 1px solid silver;
+                background: white;
+                display: block;
+                margin: 10px;
+                margin-top: 4px;
+                padding: 0;
+                padding-left: 4px;
+                padding-right: 4px;
+            }
+
+            .grid-container {
+                padding: 20px;
+            }
+
+            .grid-header {
+                width: var(--grid-width);
+            }
+
+            .buttons-row {
+                @apply(--layout-horizontal);
+                @apply(--layout-center);
+                height: 32px;
+                padding-bottom: 5px;
+            }
+
+            .icon-row {
+                border: outset #1b6d85;
+                @apply(--layout-horizontal);
+                @apply(--layout-center);
+                height: 32px;
+            }
+
+            paper-button {
+                height: 20px;
+            }
+
+        </style>
+
+
+        <!--This template is used in case base-grid's internal dialog should be used for adding and editing purposes-->
+        <script id="itemDetailsTemplate" type="text/x-jquery-tmpl">
+          <div class='item-details-form'>
+            <div class='spacer_5'></div>
+            {{each columns}}
+            <div class='item-details-label'> ${name} </div>
+            <div class='item-details-editor-container' data-editorid='${id}'></div>
+            {{/each}}
+            <div class='spacer_10'></div>
+            <div class='item-details-form-buttons'>
+              <button data-action='save'>Save</button>
+              <button data-action='cancel'>Cancel</button>
+            </div>
+          </div>
+        </script>
+
+        <paper-alert-dialog id="no_item_selected" title="No Item Selected" confirm-button="OK" dismiss-button="">
+            Please select the row that should be edited first!
+        </paper-alert-dialog>
+
+        <paper-alert-dialog
+                id="confirm_to_delete"
+                title="Confirm to delete"
+                confirm-button="Delete"
+                dismiss-button="Cancel"
+                on-confirm="handleDeleteConfirm">
+            Are you sure to delete the selected entry?
+        </paper-alert-dialog>
+
+        <paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" always-on-top="true"
+                      on-iron-overlay-canceled="_checkOverlayCancel"
+                      entry-animation="scale-up-animation" exit-animation="fade-out-animation" id="dialog"
+                      class="dialog">
+        </paper-dialog>
+
+        <div class="grid-container">
+            <div class="container flex buttons-row">
+
+                <template is="dom-if" if="{{metadata.controlButtons}}">
+                    <div class="icon-row flex-stretch-align">
+                        <template is="dom-repeat" items="{{metadata.controlButtons}}">
+
+                            <template is="dom-if" if="{{$isObject(item)}}">
+
+                                <template is="dom-if" if="{{item.name}}">
+                                    <paper-button label$="{{item.name}}" class$="{{item.class}}"
+                                                  data-args="{{item.fnc}}"
+                                                  title$="{{item.title}}" on-tap="execute"
+                                                  disabled="{{metadata.stopEdit}}">
+                                        <iron-icon icon="{{item.icon}}" class$="{{item.class}}"
+                                                   data-args="{{item.fnc}}"></iron-icon>
+                                        {{item.name}}
+                                    </paper-button>
+                                </template>
+                                <template is="dom-if" if="{{!item.name}}">
+                                    <paper-icon-button class$="{{item.class}}" icon="{{item.icon}}" on-tap="execute"
+                                                       data-args="{{item.fnc}}"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+                            </template>
+                            <template is="dom-if" if="{{!$isObject(item)}}">
+
+                                <template is="dom-if" if="{{$isEqual(item,'add')}}">
+                                    <paper-icon-button class="icon" icon="add-circle-outline" on-tap="addEditGridRow"
+                                                       data-args="add"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'edit')}}">
+                                    <paper-icon-button class="icon" icon="create" on-tap="addEditGridRow"
+                                                       data-args="edit"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'delete')}}">
+                                    <paper-icon-button class="icon" icon="remove-circle-outline" on-tap="deleteGridRow"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'back')}}">
+                                    <paper-icon-button class="icon" icon="arrow-back" on-tap="moveSelectedRowsBackward"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'forward')}}">
+                                    <paper-icon-button class="icon" icon="arrow-forward"
+                                                       on-tap="moveSelectedRowsForward"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'up')}}">
+                                    <paper-icon-button class="icon" icon="arrow-upward" on-tap="moveSelectedRowsUpwards"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'down')}}">
+                                    <paper-icon-button class="icon" icon="arrow-downward"
+                                                       on-tap="moveSelectedRowsDownwards"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'start-test')}}">
+                                    <paper-icon-button class="icon" icon="av:play-arrow"
+                                                       on-tap="manipulateTableRandomly"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                                <template is="dom-if" if="{{$isEqual(item,'stop-test')}}">
+                                    <paper-icon-button class="icon" icon="av:pause" on-tap="stopInterval"
+                                                       data-args="ButtonWorkflow"
+                                                       disabled="{{metadata.stopEdit}}"></paper-icon-button>
+                                </template>
+
+                            </template>
+
+                        </template>
+
+                    </div>
+                </template>
+
+            </div>
+
+            <div class="grid-header">
+                <label>[[metadata.title]]</label>
+            </div>
+            <div id="grid"></div>
+        </div>
+
+
+    </template>
+
+
+    <script>
+
+        Polymer({
+            is: "base-grid",
+            properties: {
+                columns: {
+                    type: Array
+                },
+                metadata: {
+                    type: Object,
+                    notify: true
+                },
+                data: {
+                    type: Array,
+                    notify: true
+                },
+                gridObjects: {
+                    type: Array,
+                    notify: true
+                },
+                default: {
+                    type: Object
+                }
+            },
+
+            observers: [
+                '_parentChanged(metadata.parent.parentNode, metadata.parent.parentId)',
+                '_refresh(metadata.refresh)'
+            ],
+
+            /**
+             * observe the parent.. if it has a parent, but no parent-id is provided, disable the grid
+             */
+            _parentChanged: function (parentNode, parentId) {
+                if (parentNode && !parentId) {
+                    this.set("metadata.stopEdit", true);
+                } else {
+                    this.set("metadata.stopEdit", false);
+                }
+            },
+
+            /**
+             * observe the parent.. if it has a parent, but no parent-id is provided, disable the grid
+             */
+            _refresh: function (refresh) {
+                if (refresh && this.gridObject != null) {
+                    this.set("metadata.refresh", false);
+                    this.gridObject.getData().updateIdxById();
+                    this.gridObject.getData().refresh();
+                }
+            },
+
+            execute: function (e) {
+                var fnc;
+                if (e.target.dataArgs) {
+                    fnc = e.target.dataArgs;
+                } else {
+                    fnc = e.currentTarget.dataArgs;
+                }
+                fnc();
+            },
+
+            ready: function () {
+                var self = this;
+
+                self.percentCompleteThreshold = 0;
+                self.searchString = "";
+
+                // there is a problem with the ready, it is not really ready
+                // for this reason, i use timeout as a workaround
+                setTimeout(function () {
+
+                    if (self.metadata.width == null || self.metadata.height == null) {
+                        throw new Error("Grid width and height should be specified!")
+                    }
+                    self.customStyle['--grid-width'] = self.metadata.width;
+                    self.customStyle['--grid-height'] = self.metadata.height;
+                    self.updateStyles();
+
+                    var grid = self.$.grid;
+
+                    if (self.metadata.type == 'grid') {
+                        self.gridObject = self.buildGrid(grid, self.columns, self.metadata);
+                        self.gridObject.getData().setItems(self.data);
+                    } else if (self.metadata.type == 'tree-grid') {
+                        self.gridObject = self.buildTreeGrid(grid, self.metadata, self.columns, self.data, null, null);
+                        self.gridObject.setSelectionModel(new Slick.RowSelectionModel());
+                    } else {
+                        console.error("No type for the grid has been specified.")
+                    }
+
+                    /**
+                     * after a selection-change, fire a onSelectedRowIdsChanged event
+                     */
+                    var dataView = self.gridObject.getData();
+                    var onSelectedRowIdsChanged = dataView.syncGridSelection(self.gridObject, true);
+                    onSelectedRowIdsChanged.subscribe(function (e, args) {
+                        self.metadata.selection = {
+                            ids: args.ids,
+                            rows: args.rows
+                        };
+                        self.fire('onSelectedRowIdsChanged', {
+                            ids: args.ids,
+                            rows: args.rows,
+                            parentNode: self.id,
+                            node: self.metadata.parent.node
+                        });
+                    });
+
+                    if (self.gridObjects != null) {
+                        self.gridObjects.push(self.gridObject);
+                    }
+
+
+                    /**
+                     * register listeners
+                     **/
+                    self.addEventListener('onAddEditGridRow', function (e) {
+                        var item = e.detail.item;
+                        if (item.addEdit == 'add') {
+                            var gridObject = self.gridObject;
+                            var insertionRow = 0;
+                            var treeGrid = self.metadata.type == "tree-grid";
+                            if (treeGrid && gridObject.getActiveCell() != null && gridObject.getActiveCell().row != null) {
+                                var activeRow = gridObject.getActiveCell().row;
+                                if (self.metadata.treeGridMaxDepth && activeRowItem.indent >= self.metadata.treeGridMaxDepth - 1) {
+                                    insertionRow = activeRow;
+                                    item.indent = activeRowItem.indent;
+                                    item.parent = activeRowItem.parent;
+                                } else {
+                                    insertionRow = activeRow + 1;
+                                    item.indent = activeRowItem.indent + 1;
+                                    item.parent = activeRow;
+                                }
+                            }
+                            var dataView = gridObject.getData();
+                            dataView.addRowAt(gridObject, item, insertionRow, self.disableClickOnGrids());
+                        } else {
+                            var dataView = self.gridObject.getData();
+                            var row = dataView.getRowById(item.id);
+                            self.gridObject.invalidateRow(row);
+                            self.gridObject.render();
+                        }
+                    });
+
+                    //todo/kn.. use the id instead of the activeRow
+                    // use id then to resolve the respective row
+                    self.addEventListener('onDeleteGridRow', function (e) {
+                        var activeRow = e.detail.activeRow;
+                        var dataView = self.gridObject.getData();
+                        dataView.removeRowAt(self.gridObject, activeRow);
+                    });
+
+
+                    /**
+                     * if the enableButtonClickListeners flag in the metadata is set to true,
+                     * then the add, edit and delete operations are handeled inside the base-grid itself using an internal dialog
+                     * and the events are not necessary to be listened from outside
+                     */
+                    if(G.isTrue(self.metadata.enableButtonClickListeners)) {
+
+                        self.addEventListener('onDeleteButtonClick', function (e) {
+                            var activeRow = e.detail.activeRow;
+                            self.fire('onDeleteGridRow', {activeRow: activeRow});
+                        });
+
+                        self.addEventListener('onAddEditButtonClick', function (e) {
+                            var item = e.detail.item;
+                            var addEdit = item.addEdit;
+                            var gridObject = self.gridObject;
+                            assert.isTrue(!G.isNullEmpty(item), "!G.isNullEmpty(item)");
+                            var id_deferred = Q.defer();
+                            if (addEdit == 'add') {
+                                DB.nextId()
+                                    .then(function (id) {
+                                        item.id = id;
+                                        item.indent = 0;
+                                        item.parent = null;
+                                        var insertionRow = 0;
+                                        var isTreeGrid = self.metadata.type == "tree-grid";
+                                        if (isTreeGrid && gridObject.getActiveCell() != null && gridObject.getActiveCell().row != null) {
+                                            var activeRow = gridObject.getActiveCell().row;
+                                            var activeRowItem = gridObject.getDataItem(activeRow);
+                                            if (self.metadata.treeGridMaxDepth && activeRowItem.indent >= self.metadata.treeGridMaxDepth - 1) {
+                                                insertionRow = activeRow;
+                                                item.indent = activeRowItem.indent;
+                                                item.parent = activeRowItem.parent;
+                                            } else {
+                                                insertionRow = activeRow + 1;
+                                                item.indent = activeRowItem.indent + 1;
+                                                item.indent = activeRowItem.indent + 1;
+                                                item.parent = activeRow;
+                                            }
+                                        }
+                                        var dataView = gridObject.getData();
+                                        /**
+                                         * this dialog requires the item to be added first to the grid in order to edit it
+                                         **/
+                                        dataView.addRowAt(gridObject, item, insertionRow, self.disableClickOnGrids());
+                                        id_deferred.resolve();
+                                    })
+                            } else {
+                                id_deferred.resolve();
+                            }
+
+                            id_deferred.promise.then(function () {
+                                var itemDetailsTemplate = self.$.itemDetailsTemplate;
+                                var dialog = self.$.dialog;
+                                $modal = $(itemDetailsTemplate)
+                                    .tmpl({
+                                        context: gridObject.getDataItem(gridObject.getActiveCell().row),
+                                        columns: gridObject.getColumns(),
+                                    }).appendTo(dialog);
+                                dialog.open();
+                                cancelDialog = function (e, gridObject, addEdit, dialog) {
+                                    var that = self;
+                                    return function () {
+                                        gridObject.getEditController().cancelCurrentEdit();
+                                        if (e != null) {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                        }
+                                        if (addEdit == 'add') {
+                                            var insertionRow = gridObject.getActiveCell().row;
+                                            gridObject.getData().removeRowAt(gridObject, insertionRow);
+                                        }
+                                        if (dialog != null) {
+                                            dialog.close();
+                                        }
+                                        that.enableClickOnGrids();
+                                        $modal.empty();
+                                    }
+                                }
+                                applyDialog = function (e, gridObject, dialog) {
+                                    var that = self;
+                                    return function () {
+                                        gridObject.getEditController().commitCurrentEdit();
+                                        if (e != null) {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                        }
+                                        if (dialog != null) {
+                                            dialog.close();
+                                        }
+                                        that.enableClickOnGrids();
+                                        $modal.empty();
+                                    }
+                                }
+                                $modal.keydown(function (e) {
+                                    if (e.which == $.ui.keyCode.ENTER) {
+                                        applyDialog(e, gridObject, dialog)();
+                                    } else if (e.which == $.ui.keyCode.ESCAPE) {
+                                        cancelDialog(e, gridObject, addEdit, dialog)();
+                                    }
+                                });
+                                $modal.find("[data-action=save]").click(applyDialog(null, gridObject, dialog));
+                                $modal.find("[data-action=cancel]").click(cancelDialog(null, gridObject, addEdit, dialog));
+                                var containers = $.map(gridObject.getColumns(), function (c) {
+                                    return $modal.find("[data-editorid=" + c.id + "]");
+                                });
+                                var compositeEditor = new Slick.CompositeEditor(
+                                    gridObject.getColumns(),
+                                    containers,
+                                    {
+                                        destroy: function () {
+                                            $modal.remove();
+                                        }
+                                    }
+                                );
+                                self.gridObject.editActiveCell(compositeEditor);
+                            })
+                        })
+                    }
+
+                }, 10);
+
+
+            },
+
+            showButton: function (metadata, controlButton) {
+                if (!metadata.controlButtons) {
+                    return false;
+                }
+                return metadata.controlButtons.indexOf(controlButton) != -1;
+            },
+
+            $isObject: function (item) {
+                return typeof item === "object"
+            },
+
+            $isEqual: function (first, second) {
+                return first == second
+            },
+
+            isIEPreVer9: function () {
+                var v = navigator.appVersion.match(/MSIE ([\d.]+)/i);
+                return (v ? v[1] < 9 : false);
+            },
+
+
+            buildTreeGrid: function (gridElement, options, columns, data, onAddNewRow, onClick) {
+
+                var self = this;
+
+                function requiredFieldValidator(value) {
+                    if (value == null || value == undefined || !value.length) {
+                        return {valid: false, msg: "This is a required field"};
+                    } else {
+                        return {valid: true, msg: null};
+                    }
+                }
+
+                var NodeColumnFormatter = function (row, cell, value, columnDef, dataContext) {
+                    if (value == null) {
+                        value = "";
+                    }
+                    value = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    var spacer = "<span style='display:inline-block;height:1px;width:" + (15 * dataContext["indent"]) + "px'></span>";
+                    var idx = dataView.getIdxById(dataContext.id);
+                    if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
+                        if (dataContext._collapsed) {
+                            return spacer + " <span class='toggle expand'></span>&nbsp;" + value;
+                        } else {
+                            return spacer + " <span class='toggle collapse'></span>&nbsp;" + value;
+                        }
+                    } else {
+                        return spacer + " <span class='toggle'></span>&nbsp;" + value;
+                    }
+                };
+
+
+                for (var i = 0; i < columns.length; i++) {
+                    var column = columns[i];
+                    if (column.formatter != null && column.formatter == "NodeColumnFormatter") {
+                        column.formatter = NodeColumnFormatter;
+                    }
+                    if (column.validator != null && column.validator == "requiredFieldValidator") {
+                        column.validator = requiredFieldValidator;
+                    }
+                }
+
+                var collapseFilter = function (data) {
+                    return function (item) {
+                        if (item.parent != null) {
+                            var parent = data[item.parent];
+                            while (parent) {
+                                if (parent._collapsed) {
+                                    return false;
+                                }
+                                parent = data[parent.parent];
+                            }
+                        }
+                        return true;
+                    };
+                }
+
+                // initialize the model
+                var dataView = new Slick.Data.DataView({
+                    isTreeGrid: true,
+                    treeGridMaxDepth: self.metadata.treeGridMaxDepth
+                });
+                dataView.beginUpdate();
+                dataView.setItems(data);
+                dataView.setFilter(collapseFilter(data));
+                dataView.endUpdate();
+                // initialize the grid
+                var grid = new Slick.Grid(gridElement, dataView, columns, options);
+                grid.registerPlugin(new Slick.Tooltips());
+                grid.onCellChange.subscribe(function (e, args) {
+                    dataView.updateItem(args.item.id, args.item);
+                });
+
+                if (onAddNewRow != null) {
+                    grid.onAddNewRow.subscribe(onAddNewRow);
+                }
+
+                grid.onClick.subscribe(function (e, args) {
+                    if ($(e.target).hasClass("toggle")) {
+                        var item = dataView.getItem(args.row);
+                        if (item) {
+                            if (!item._collapsed) {
+                                item._collapsed = true;
+                            } else {
+                                item._collapsed = false;
+                            }
+                            dataView.updateItem(item.id, item);
+                        }
+                        if (onClick) {
+                            onClick(e, args);
+                        }
+                        e.stopImmediatePropagation();
+                    }
+                });
+
+                // wire up model events to drive the grid
+                dataView.onRowCountChanged.subscribe(function (e, args) {
+                    grid.updateRowCount();
+                    grid.render();
+                });
+
+                dataView.onRowsChanged.subscribe(function (e, args) {
+                    grid.invalidateRows(args.rows);
+                    grid.render();
+                });
+
+                return grid;
+            },
+
+
+            buildGrid: function (gridElement, columns, options, selectionModel) {
+                var dataView = new Slick.Data.DataView({isTreeGrid: false});
+                var gridObject = new Slick.Grid($(gridElement), dataView, columns, options);
+                // wire up model events to drive the grid
+                dataView.onRowCountChanged.subscribe(function (e, args) {
+                    gridObject.updateRowCount();
+                    gridObject.render();
+                });
+                dataView.onRowsChanged.subscribe(function (e, args) {
+                    gridObject.invalidateRows(args.rows);
+                    gridObject.render();
+                });
+                if (selectionModel != null) {
+                    gridObject.setSelectionModel(selectionModel);
+                } else {
+                    gridObject.setSelectionModel(new Slick.RowSelectionModel());
+                }
+                gridObject.registerPlugin(new Slick.CellExternalCopyManager({
+                    includeHeaderWhenCopying: false
+                }));
+                return gridObject;
+            },
+
+            buildGroupedGrid: function (gridElement, pagerElement, columns, data, options, sortcol, sortFunction) {
+
+                var self = this;
+
+                var dataView;
+                var grid;
+
+                var groupByFunc = function groupByDuration() {
+                    dataView.setGrouping({
+                        getter: "type",
+                        formatter: function (g) {
+                            return g.value + "  <span style='color:green'>(" + g.count + ")</span>";
+                        },
+                        aggregators: [
+                            new Slick.Data.Aggregators.Avg("percentComplete"),
+                            new Slick.Data.Aggregators.Sum("cost")
+                        ],
+                        aggregateCollapsed: false,
+                        lazyTotalsCalculation: true
+                    });
+                }
+
+                var groupItemMetadataProvider = new Slick.Data.GroupItemMetadataProvider();
+                dataView = new Slick.Data.DataView({
+                    groupItemMetadataProvider: groupItemMetadataProvider,
+                    inlineFilters: true
+                });
+
+                grid = new Slick.Grid($(gridElement), dataView, columns, options);
+                // register the group item metadata provider to add expand/collapse group handlers
+                grid.registerPlugin(groupItemMetadataProvider);
+                grid.setSelectionModel(new Slick.CellSelectionModel());
+                var pager = new Slick.Controls.Pager(dataView, grid, $(pagerElement));
+                var columnpicker = new Slick.Controls.ColumnPicker(columns, grid, options);
+
+                grid.onSort.subscribe(sortFunction(dataView));
+
+                // wire up model events to drive the grid
+                dataView.onRowCountChanged.subscribe(function (e, args) {
+                    grid.updateRowCount();
+                    grid.render();
+                });
+                dataView.onRowsChanged.subscribe(function (e, args) {
+                    grid.invalidateRows(args.rows);
+                    grid.render();
+                });
+
+                // initialize the model after all the events have been hooked up
+                dataView.beginUpdate();
+                dataView.setItems(data);
+                groupByFunc();
+                dataView.endUpdate();
+
+                return grid;
+            },
+
+
+            stopImmediatePropagation: function (e, args) {
+                e.stopImmediatePropagation();
+            },
+
+            disableClickOnGrids: function () {
+                for (var i = 0; i < this.gridObjects.length; i++) {
+                    var gridObject = this.gridObjects[i];
+                    // stop the immediate propagation so that the edit dialog do not get closed
+                    gridObject.onClick.subscribe(this.stopImmediatePropagation);
+                }
+            },
+
+            enableClickOnGrids: function () {
+                for (var i = 0; i < this.gridObjects.length; i++) {
+                    var gridObject = this.gridObjects[i];
+                    // stop the immediate propagation so that the edit dialog do not get closed
+                    gridObject.onClick.unsubscribe(this.stopImmediatePropagation);
+                }
+            },
+
+            checkOverlayCancel: function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            },
+
+            toType: function (obj) {
+                return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
+            },
+
+            deleteGridRow: function (e) {
+                var gridObject = this.gridObject;
+                if (gridObject.getActiveCell() == null || gridObject.getActiveCell().row == null) {
+                    var no_item_selected = this.$.no_item_selected;
+                    no_item_selected.open();
+                } else {
+                    var confirm_to_delete = this.$.confirm_to_delete;
+                    confirm_to_delete.open();
+                }
+            },
+
+            handleDeleteConfirm: function (e) {
+                var gridObject = this.gridObject;
+                var activeRow = gridObject.getActiveCell().row;
+                item = gridObject.getDataItem(activeRow);
+                this.fire('onDeleteButtonClick', {item: item, activeRow: activeRow});
+            },
+
+            moveSelectedRowsBackward: function (e) {
+                var gridObject = this.gridObject;
+                if (gridObject.getSelectedRows() == null || gridObject.getSelectedRows()[0] == null) {
+                    return;
+                }
+                var dataView = gridObject.getData();
+                dataView.moveRowsBackward(gridObject, gridObject.getSelectedRows());
+            },
+
+
+            moveSelectedRowsForward: function (e) {
+                var gridObject = this.gridObject;
+                if (gridObject.getSelectedRows() == null || gridObject.getSelectedRows()[0] == null) {
+                    return;
+                }
+                var dataView = gridObject.getData();
+                dataView.moveRowsForward(gridObject, gridObject.getSelectedRows());
+            },
+
+
+            moveSelectedRowsUpwards: function (e) {
+                var gridObject = this.gridObject;
+                if (gridObject.getSelectedRows() == null || gridObject.getSelectedRows()[0] == null) {
+                    return;
+                }
+                var dataView = gridObject.getData();
+                dataView.moveRowsUpwards(gridObject, gridObject.getSelectedRows());
+            },
+
+
+            moveSelectedRowsDownwards: function (e) {
+                var gridObject = this.gridObject;
+                if (gridObject.getSelectedRows() == null || gridObject.getSelectedRows()[0] == null) {
+                    return;
+                }
+                var dataView = gridObject.getData();
+                dataView.moveRowsDownwards(gridObject, gridObject.getSelectedRows());
+            },
+
+
+            stopInterval: function (e) {
+                if (this.interval) {
+                    clearInterval(this.interval);
+                }
+                var gridObject = this.gridObject;
+                var dataView = gridObject.getData();
+                //dataView.logTreeGrid();
+            }
+            ,
+
+
+            shuffle: function (v) {
+                for (var j, x, i = v.length; i; j = parseInt(Math.random() * i), x = v[--i], v[i] = v[j], v[j] = x);
+                return v;
+            },
+
+
+            manipulateTableRandomly: function (e) {
+                var self = this;
+                var gridObject = this.gridObject;
+                var dataView = gridObject.getData();
+                var id = 100;
+                self.interval = setInterval(function () {
+                    var items = dataView.getItems();
+                    /**
+                     * by default add a new item at index 0
+                     */
+                    var nextRandomRowIndexes = [0], randomAction = 4;
+                    if (items.length > 0) {
+                        var randomLength = self.getRandomInt(0, (2 * items.length) / 3);
+                        var indexes = Array.apply(null, {length: items.length}).map(Number.call, Number)
+                        nextRandomRowIndexes = self.shuffle(indexes).slice(0, randomLength != 0 ? randomLength : 1);
+                        randomAction = self.getRandomInt(0, 5);
+                    }
+                    if (randomAction == 0) {
+                        console.debug("########## moving rows " + nextRandomRowIndexes + " backward ...");
+                        dataView.moveRowsBackward(gridObject, nextRandomRowIndexes);
+                    } else if (randomAction == 1) {
+                        console.debug("########## moving rows " + nextRandomRowIndexes + " forward ...");
+                        dataView.moveRowsForward(gridObject, nextRandomRowIndexes);
+                    } else if (randomAction == 2) {
+                        console.debug("########## moving rows " + nextRandomRowIndexes + " upwards ...");
+                        dataView.moveRowsUpwards(gridObject, nextRandomRowIndexes);
+                    } else if (randomAction == 3) {
+                        console.debug("########## moving rows " + nextRandomRowIndexes + " downwards ...");
+                        dataView.moveRowsDownwards(gridObject, nextRandomRowIndexes);
+                    } else if (randomAction == 4) {
+                        console.debug("########## inserting new items at indexes " + nextRandomRowIndexes + " ...");
+                        for (var i = 0; i < nextRandomRowIndexes.length; i++) {
+                            var nextRandomRowIndex = nextRandomRowIndexes[i];
+                            var nextParent = null, nextIndent = 0;
+                            if (items.length > 0) {
+                                var nextRandomItem = dataView.getItemByIdx(nextRandomRowIndex);
+                                nextParent = nextRandomItem.parent;
+                                nextIndent = nextRandomItem.indent;
+                            }
+                            var newItem = {
+                                id: id,
+                                icon: "test-icon" + id,
+                                name: "test" + id,
+                                indent: nextIndent,
+                                parent: nextParent
+                            };
+                            id++;
+                            dataView.addRowAt(gridObject, newItem, nextRandomRowIndex, null);
+                        }
+                    } else if (randomAction == 5) {
+                        console.debug("########## deleting item at index " + nextRandomRowIndexes + " ...");
+                        nextRandomRowIndexes.sort(function (a, b) {
+                            return b - a
+                        });
+                        for (var i = 0; i < nextRandomRowIndexes.length; i++) {
+                            var nextRandomRowIndex = nextRandomRowIndexes[i];
+                            dataView.removeRowAt(gridObject, nextRandomRowIndex);
+                        }
+                    }
+                }, 300);
+
+            },
+
+
+            /**
+             * Returns a random integer between min (inclusive) and max (inclusive)
+             * Using Math.round() will give you a non-uniform distribution!
+             */
+            getRandomInt: function (min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            ,
+
+
+            deepClone: function (obj) {
+                return $.extend(true, {}, obj);
+            }
+            ,
+
+            addEditGridRow: function (e) {
+                var self = this;
+                //var args = e.target.getAttribute('data-args').split(",");
+                var args = e.currentTarget.getAttribute('data-args').split(",");
+                var addEdit = args[0].trim();
+                var gridObject = this.gridObject;
+
+                if (gridObject.getEditorLock().isActive() && !gridObject.getEditorLock().commitCurrentEdit()) {
+                    return;
+                }
+
+                /**
+                 * in case of add, create a new line and then open the dialog for editing
+                 * in case, they cancel in the dialog, this line should then be deleted
+                 */
+                var item;
+                if (addEdit == 'add') {
+                    var insertionRow = 0;
+                    if (this.default) {
+                        item = this.deepClone(this.default);
+                    } else {
+                        item = {};
+                    }
+                    // todo/kn.. use this flag temporarily to differentiate  between add and edit
+                    // this should be changed to check the id whether it is null or not after the id field is not displayed in the edit dialog any longer
+                    item.addEdit = 'add';
+                    item.id = null;
+                    item.indent = 0;
+                    item.parent = null;
+
+                } else {
+                    if (gridObject.getActiveCell() == null || gridObject.getActiveCell().row == null) {
+                        alert("Please select the row that should be edited first!");
+                        return;
+                    }
+                    item = gridObject.getDataItem(gridObject.getActiveCell().row);
+                    item.addEdit = 'edit';
+                }
+
+                /**
+                 * see also onAddEditGridRow listener
+                 * it is fired after the fired object here has been processed on the other side
+                 **/
+                self.fire('onAddEditButtonClick', {item: item});
+            }
+
+        })
+        ;
+    </script>
+
+</dom-module>
+

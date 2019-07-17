@@ -1,0 +1,18 @@
+<div class="dropdown grid-date-time-picker">
+    <a class="dropdown-toggle xx" role="button" data-toggle="dropdown" data-target="#"
+       href="">
+        <div class="input-append">
+            <input type="text" name="form_xx" class="form-control input-large"
+                   data-ng-model="MODEL_COL_FIELD" grid-datetimepicker datetime="yyyy-MM-dd HH:mm"
+                   ng-enter="stopEdit(event)"
+                   required validate-on="blur">
+            <span class="add-on"><i class="icon-calendar"></i></span>
+        </div>
+    </a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+        <datetimepicker data-ng-model="MODEL_COL_FIELD" on-set-time="stopEdit(event)"
+                        class="grid-date-time-picker-dir"
+                        data-datetimepicker-config="{ dropdownSelector: '.xx', startView:'hour', minView:'minute'}">
+        </datetimepicker>
+    </ul>
+</div>

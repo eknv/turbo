@@ -1,0 +1,120 @@
+<dom-module id="design-bookmark">
+
+    <link rel="import" href="../../../../bower_components/iron-signals/iron-signals.html">
+    <link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+    <link rel="import" type="css" href="../../../../imports/css/common.css">
+    <link rel="import" href="../../../../_framework/_bl/utils/nummeric-utils-import.html">
+
+    <template>
+
+        <style is="custom-style"></style>
+        <br/>
+
+        <iron-signals on-iron-signal-receive-bookmark="receiveBookmark"></iron-signals>
+        <iron-signals on-iron-signal-receive-bookmarks="receiveBookmarks"></iron-signals>
+
+        <base-grid id="designBookmarkGrid" columns="{{bookmarkGridColumns}}" metadata="{{bookmarkGridMetadata}}"
+                   data="{{bookmarkGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+    </template>
+
+
+    <script>
+
+        Polymer({
+            is: "design-bookmark",
+            properties: {},
+
+
+            receiveBookmark: function (e) {
+                var bookmark = e.detail;
+                bookmark.id=$random1000000();
+                var gridObject = this.gridObjects[0];
+                gridObject.getData().addRowAt(gridObject, bookmark, 0, null)
+            },
+
+
+            receiveBookmarks: function (e) {
+                var bookmarks = e.detail;
+                var gridObject = this.gridObjects[0];
+                gridObject.getData().setItems(bookmarks);
+            },
+
+
+            addBookmark: function () {
+                this.fire('iron-signal', {name: 'publish-bookmark', data: null});
+            },
+
+
+            loadBookmark: function () {
+                if (this.bookmarkGridMetadata.selection == null || this.bookmarkGridMetadata.selection.rows == null) {
+                    alert("Select first the bookmark that should be loaded!")
+                }
+                var firstSelectedRowIndex = this.bookmarkGridMetadata.selection.rows[0];
+                var gridObject = this.gridObjects[0];
+                var selectedBookmark = gridObject.getData().getItemByIdx(firstSelectedRowIndex);
+                this.fire('iron-signal', {name: 'load-bookmark', data: selectedBookmark});
+            },
+
+
+            // todo/kn.. the issue with the heights of the buttons with label
+            //
+
+
+            ready: function () {
+
+                var self = this;
+
+                self.gridObjects = [];
+
+                /**
+                 * Entity View Grid
+                 */
+                self.bookmarkGridColumns = [
+                    {id: "name", name: "Name", field: "name", width: 170, editor: Slick.Editors.Text},
+                    {id: "time", name: "Time", field: "time", width: 150, editor: Slick.Editors.None}
+                ];
+                self.bookmarkGridMetadata = {
+                    title: 'Bookmarks',
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: [
+                        {
+                            title: 'Load Bookmark',
+                            class: 'width-40px',
+                            icon: 'icons:assignment-return',
+                            fnc: self.loadBookmark.bind(self),
+                            self: self
+                        },
+                        {
+                            title: 'Add Bookmark',
+                            class: 'width-40px',
+                            icon: 'icons:bookmark',
+                            fnc: self.addBookmark.bind(self),
+                            self: self
+                        },
+                        'delete', 'up', 'down'],
+                    type: 'grid',
+                    width: '350px',
+                    height: '800px',
+                    refresh: false,
+                    parent: {field: 'models', node: 'designBookmarkGrid', parentNode: null, parentId: null}
+                };
+                self.bookmarkGridData = [];
+
+                self.async(function () {
+                    self.fire('iron-signal', {name: 'send-bookmarks', data: null});
+                }, 100);
+
+            }
+
+
+        })
+        ;
+    </script>
+
+</dom-module>
+

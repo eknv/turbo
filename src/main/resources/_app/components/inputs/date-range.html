@@ -1,0 +1,98 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer.html"/>
+<link rel="import" href="../../../../bower_components/iron-input/iron-input.html"/>
+<link rel="import" href="../../../../bower_components/iron-flex-layout/iron-flex-layout.html"/>
+<link rel="import" href="../../../../bower_components/moment-element/moment-with-locales-import.html">
+
+<dom-module id="date-range">
+  <template>
+
+    <style>
+      :host {
+        display: inline-block;
+      }
+
+      :host([hidden]) {
+        display: none !important;
+      }
+
+      input[is="iron-input"] {
+        font: inherit;
+        outline: none;
+        box-shadow: none;
+        border: none;
+        width: auto;
+        height: 17px;
+        text-align: center;
+      }
+
+      .container {
+        @apply(--layout-horizontal);
+      }
+    </style>
+
+    <div class="container">
+      <input is="iron-input" on-change="fromValueChanged" bind-value="{{fromDateString}}"
+             size$="{{size}}" maxlength$="{{size}}" prevent-invalid-input allowed-pattern="[[pattern]]">
+      -
+      <input is="iron-input" on-change="toValueChanged" bind-value="{{toDateString}}"
+             size$="{{size}}" maxlength$="{{size}}" prevent-invalid-input allowed-pattern="[[pattern]]">
+    </div>
+
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'date-range',
+
+    properties: {
+      fromDate: {
+        type: Object,
+        reflectToAttribute: true,
+        notify: true
+      },
+      fromDateString: {
+        type: String,
+        reflectToAttribute: true,
+        notify: true
+      },
+      toDate: {
+        type: Object,
+        reflectToAttribute: true,
+        notify: true
+      },
+      toDateString: {
+        type: String,
+        reflectToAttribute: true,
+        notify: true
+      },
+      size: {
+        type: Number,
+        value: 11
+      }
+    },
+
+
+    fromValueChanged: function (e) {
+      var value = moment(e.target.value, "DD MMM YYYY");
+      if (value.isValid()) {
+        this.fromDate = value;
+      } else {
+        this.fromDate = null;
+      }
+    },
+
+    toValueChanged: function (e) {
+      var value = moment(e.target.value, "DD MMM YYYY");
+      if (value.isValid()) {
+        this.toDate = value;
+      } else {
+        this.toDate = null;
+      }
+    },
+
+
+
+
+  });
+</script>

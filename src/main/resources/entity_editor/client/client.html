@@ -1,0 +1,59 @@
+<div style="padding-left:130px;padding-right:200px;">
+
+
+    <div class="row">
+        <div class="col-sm-6">
+            <button class="btn btn-primary" data-ng-click="addNewEntity()">Add New Entity</button>
+            <button class="btn btn-danger" data-ng-click="deleteEntity()">Delete Entity</button>
+            <button ng-click="saveModels()" class="btn btn-success pull-right"> Save Entities</button>
+            <h3>Entities</h3>
+            <div class="grid" ui-grid="modelGridOptions" ui-grid-edit ui-grid-cellNav ui-grid-resize-columns
+                 ui-grid-selection></div>
+        </div>
+        <div class="col-sm-6">
+            <button class="btn btn-primary" data-ng-click="addNewConstraint()">Add Constraint</button>
+            <button class="btn btn-danger" data-ng-click="deleteConstraint()">Delete Constraint</button>
+
+            <h3>Constraints</h3>
+            <div class="grid" ui-grid="constraintGridOptions" ui-grid-edit ui-grid-cellNav ui-grid-resize-columns
+                 ui-grid-selection></div>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm-12">
+            <button class="btn btn-primary" data-ng-click="addNewField()">Add Field</button>
+            <button class="btn btn-danger" data-ng-click="deleteField()">Delete Field</button>
+            <h3>Main fields</h3>
+            <div class="grid" ui-grid="fieldGridOptions" ui-grid-edit ui-grid-cellNav ui-grid-resize-columns
+                 ui-grid-selection></div>
+        </div>
+    </div>
+
+
+    <div ng-if="currentField!=null && currentField.name!=null">
+        <div class="row">
+            <div class="col-sm-2">
+                <h3>ID</h3>
+                <auto-form section="currentField.general" options="options" models="models" current-model="currentModel"
+                           current-field="currentField"></auto-form>
+            </div>
+            <div class="col-sm-2">
+                <h3>UI</h3>
+                <auto-form section="currentField.ui" options="options" models="models" current-model="currentModel"
+                           current-field="currentField"></auto-form>
+            </div>
+            <div class="col-sm-2">
+                <h3>Search</h3>
+                <auto-form section="currentField.search" options="options" models="models" current-model="currentModel"
+                           current-field="currentField"></auto-form>
+            </div>
+            <div class="col-sm-2">
+                <h3>Relationship</h3>
+                <auto-form category="relationship" section="currentField.relationship" options="options" models="models"
+                           current-model="currentModel" current-field="currentField"></auto-form>
+            </div>
+        </div>
+    </div>
+
+</div>

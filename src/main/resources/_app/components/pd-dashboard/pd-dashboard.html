@@ -1,0 +1,176 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../components/pd-drawer/pd-drawer.html">
+
+<link rel="import" href="../../../imports/jquery2-import.html"/>
+<link rel="import" href="../../../imports/general-import.html"/>
+<link rel="import" href="../../../bower_components/iron-icons/iron-icons.html"/>
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html"/>
+<link rel="import" href="../../../_app/components/pd-list/pd-list-item.html"/>
+
+<link rel="import" href="../../../_app/components/pd-flatiron-director/pd-flatiron-director.html"/>
+<link rel="import" href="../../../bower_components/iron-ajax/iron-ajax.html"/>
+<link rel="import" href="turbo-ajax.html"/>
+<link rel="import" href="turbo-menu.html"/>
+
+
+
+<dom-module id="pd-dashboard">
+    <link rel="stylesheet" href="../../../_app/css/main.css"/>
+    <link rel="stylesheet" href="../../../_app/css/position.css"/>
+    <link rel="stylesheet" href="../../../_app/css/font.css"/>
+    <link rel="stylesheet" href="../../../_app/css/skins/default/colors.css"/>
+    <link rel="import" href="../../../_app/css/skins/default/color-vars.html"/>
+
+    <template>
+
+        <pd-drawer>
+            <div class="logo">Logo here</div>
+            <div class="left-menu p-t-1">
+                <turbo-menu links="{{links}}"></turbo-menu>
+            </div>
+            <div id="right" class="right-menu">
+                <paper-button on-tap="testPostData">Test server connection</paper-button>
+            </div>
+            <div id="main">
+
+            </div>
+        </pd-drawer>
+        <pd-flatiron-director route="{{route}}"></pd-flatiron-director>
+        <iron-ajax id="ajax" url="" handle-as="document" loading="{{loading}}"></iron-ajax>
+
+    </template>
+</dom-module>
+
+<script>
+
+    Polymer({
+        is: "pd-dashboard",
+        properties: {
+            route: {
+                type: String,
+                notify: true,
+                observer: 'routeChanged'
+            },
+            loading: {
+                type: Boolean,
+                readOnly: true,
+                notify: true,
+                value: false
+            }
+        },
+
+        routeChanged: function (newValue, oldValue) {
+            this.newRoute = newValue;
+            this.loadingMain = true;
+            this.generateRequest(newValue, true);
+        },
+
+
+        generateRequest: function (value, isMainRequest) {
+
+            var rightValue = null;
+            if (value.indexOf("|") !== -1) {
+                rightValue = value.substring(value.indexOf("|") + 1);
+                value = value.substring(0, value.indexOf("|"));
+            } else if (!isMainRequest) {
+                return;
+            }
+
+            this.$.right.innerHTML = "";
+
+            var page = value.replace("!", "");
+            var params = page.split("?")[1];
+            var pageName = page.split("?")[0];
+            if (pageName == "") pageName = "/home";
+
+            if (isMainRequest) {
+                this.$.ajax.url = "_app/pages" + pageName + "/" + pageName + ".html?" + params;
+                this.$.ajax.generateRequest();
+            } else {
+                if (rightValue != null) {
+                    this.$.ajax.url = "_app/pages" + pageName + "/" + pageName + "-" + rightValue + ".html";
+                    this.$.ajax.generateRequest();
+                }
+            }
+
+        },
+
+
+        // make the iron-ajax call
+        testPostData: function () {
+            $$.execute('kn_test', ['something'])
+                .then(function (response) {
+                    alert('whoa! request complete: ' + response.detail.response);
+                });
+        },
+
+        //callback on request complete
+
+        postComplete: function (response) {
+            alert('whoa! request complete: ' + response.detail.response);
+        },
+
+
+        ready: function () {
+            var self = this;
+
+            $$.initGlobalCache()
+                .then(function (globalCache) {
+                    self.set("links", globalCache.links);
+                })
+
+            self.$.ajax.addEventListener('response', function (response) {
+                try {
+                    var links = response.detail.response.head.querySelectorAll("link");
+                    var hrefs = [];
+                    for (var i = 0; i <= links.length - 1; i++) {
+                        if (window.document.head.innerHTML.indexOf(links[i].href.toLowerCase()) == -1) {
+                            hrefs.push(links[i].href.toLowerCase())
+                        }
+                    }
+                    var linksToBeLoaded = hrefs.length;
+
+                    if (linksToBeLoaded == 0) {
+                        self.loadDiv(response.detail.response.body.innerHTML);
+                    } else {
+                        for (var i = 0; i <= hrefs.length - 1; i++) {
+                            var fileref = document.createElement('link');
+                            fileref.rel = 'import';
+                            fileref.href = hrefs[i];
+                            document.head.appendChild(fileref);
+                            fileref.onload = function () {
+                                linksToBeLoaded--;
+                                // after all the links are loaded
+                                if (linksToBeLoaded == 0) {
+                                    self.loadDiv(response.detail.response.body.innerHTML);
+                                }
+                            }
+                        }
+                    }
+
+                } catch (e) {
+                }
+            });
+        },
+
+
+        loadDiv: function (innerHTML) {
+            var self = this
+            if (self.loadingMain == true) {
+                var mainDiv = document.createElement('div');
+                mainDiv.innerHTML = innerHTML;
+                self.$.main.innerHTML = "";
+                self.$.main.appendChild(mainDiv);
+                self.loadingMain = false;
+                self.generateRequest(self.newRoute, false);
+            } else {
+                var rightDiv = document.createElement('div');
+                rightDiv.innerHTML = innerHTML;
+                self.$.right.innerHTML = "";
+                self.$.right.appendChild(rightDiv);
+            }
+        }
+
+
+    });
+</script>

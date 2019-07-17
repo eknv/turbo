@@ -1,0 +1,154 @@
+<form name="entryForm" angular-validator-submit="persistEntity()" novalidate angular-validator>
+
+    <div class="padding-10">
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-save">Save</span>
+        </button>
+        <button type="button" class="btn btn-primary" ng-click="close()">
+            <span class="glyphicon glyphicon-remove-circle">Cancel</span>
+        </button>
+    </div>
+
+    <div class="well">
+
+        <div class="row padding-5" ng-repeat="field in gridoptions.columnDefs | filter:{ui:{table:true}}"
+             style="padding: 5px;">
+
+            <div class="col-xs-4">
+                {{field.name}}
+            </div>
+
+            <div class="col-xs-8">
+                <div ng-if="field.type.toLowerCase() == 'text'" class="form-group">
+                    <input class="form-control" type="text" name="form_{{field.name}}"
+                           ng-model="selectedCopy[field.name]"
+                           required validate-on="blur">
+                </div>
+                <div ng-if="field.type.toLowerCase() == 'time'" class="form-group">
+
+                    <div class="dropdown">
+                        <a class="dropdown-toggle {{field.name}}" role="button" data-toggle="dropdown" data-target="#"
+                           href="">
+                            <div class="input-append">
+                                <input type="text" name="form_{{field.name}}" class="form-control input-large"
+                                       datetime="HH:mm"
+                                       data-ng-model="selectedCopy[field.name]"
+                                       required validate-on="blur">
+                                <span class="add-on"><i class="icon-calendar"></i></span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <datetimepicker data-ng-model="selectedCopy[field.name]"
+                                            data-datetimepicker-config="{ dropdownSelector: '.{{field.name}}', startView:'hour', minView:'minute'}">
+                            </datetimepicker>
+                        </ul>
+                    </div>
+
+                </div>
+                <div ng-if="field.type.toLowerCase() == 'date'" class="form-group">
+
+                    <div class="dropdown">
+                        <a class="dropdown-toggle {{field.name}}" role="button" data-toggle="dropdown" data-target="#"
+                           href="">
+                            <div class="input-append">
+                                <input type="text" name="form_{{field.name}}" class="form-control input-large"
+                                       datetime="yyyy-MM-dd"
+                                       data-ng-model="selectedCopy[field.name]"
+                                       required validate-on="blur">
+                                <span class="add-on"><i class="icon-calendar"></i></span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <datetimepicker data-ng-model="selectedCopy[field.name]"
+                                            data-datetimepicker-config="{ dropdownSelector: '.{{field.name}}', startView:'day', minView:'day'}">
+                            </datetimepicker>
+                        </ul>
+                    </div>
+
+                </div>
+                <div ng-if="field.type.toLowerCase() == 'datetime'" class="form-group">
+
+                    <div class="dropdown">
+                        <a class="dropdown-toggle {{field.name}}" id="dLabel" role="button" data-toggle="dropdown"
+                           data-target="#" href="">
+                            <div class="input-append">
+                                <input type="text" name="form_{{field.name}}" class="form-control input-large"
+                                       datetime="yyyy-MM-dd HH:mm"
+                                       data-ng-model="selectedCopy[field.name]"
+                                       required validate-on="blur">
+                                <span class="add-on"><i class="icon-calendar"></i></span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <datetimepicker data-ng-model="selectedCopy[field.name]"
+                                            data-datetimepicker-config="{ dropdownSelector: '.{{field.name}}' }">
+                            </datetimepicker>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div style="padding-left: 5px" ng-if="field.type.toLowerCase() == 'boolean'" class="form-group">
+                    <input type="checkbox" ng-model="selectedCopy[field.name]" name="form_{{field.name}}"
+                           validate-on="blur">
+                </div>
+
+                <div ng-if="field.type.toLowerCase() == 'decimal'" class="form-group">
+                    <input class="form-control" type="text" name="form_{{field.name}}"
+                           ng-model="selectedCopy[field.name]"
+                           ui-number-mask="3"
+                           required validate-on="blur">
+                </div>
+
+                <div ng-if="field.type.toLowerCase() == 'integer' || field.type.toLowerCase() == 'number'"
+                     class="form-group">
+                    <input class="form-control" type="text" name="form_{{field.name}}"
+                           ng-model="selectedCopy[field.name]"
+                           ui-number-mask="0"
+                           required validate-on="blur">
+                </div>
+
+                <div ng-if="field.type.toLowerCase() == 'select'" class="form-group">
+                    <select class="form-control" ng-model="selectedCopy[field.name]" name="form_{{field.name}}"
+                            required validate-on="blur">
+                        <option ng-repeat="item in optionsMap[field.name]" value="{{item}}">{{item}}</option>
+                    </select>
+                </div>
+
+                <div
+                    ng-if="isReferring(field.relationship.relationshipType, parentInfo.parentRelationship.mappedBy)">
+                    <div ng-if="selectedParentId != null">
+                        <div class="form-group">
+                            <input class="form-control" type="text" name="form_{{field.name}}" ng-model="parentAsString"
+                                   readonly>
+                        </div>
+                    </div>
+                    <div ng-if="selectedParentId == null">
+                        <div class="form-group">
+                            <input bs-input="selectedCopy" bs-input-name="{{field.name}}" bs-input-type="{{field.type}}"
+                                   bs-input-value="{{selectedCopy[field.name]}}"
+                                   class="form-control" type="text" name="form_{{field.name}}"
+                                   ng-model="selectedCopy[field.name]"
+                                   required validate-on="blur">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="padding-10 form-group">
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-save">Save</span>
+        </button>
+        <button type="button" class="btn btn-primary" ng-click="close()">
+            <span class="glyphicon glyphicon-remove-circle">Cancel</span>
+        </button>
+    </div>
+
+
+</form>
+
+
+

@@ -1,0 +1,53 @@
+<link rel="import" href="../../../bower_components/iron-ajax/iron-ajax.html"/>
+
+<dom-module id="turbo-ajax">
+    <template>
+        <iron-ajax id="dataAjax"
+                   method="post"
+                   url="http://localhost:5050/api/action"
+                   on-response="onResponse"
+                   on-error="onError"
+                   headers='{"Accept": "application/json", "Content-Type": "application/json"}'>
+        </iron-ajax>
+    </template>
+</dom-module>
+
+<script>
+
+    Polymer({
+        is: "turbo-ajax",
+        properties: {},
+
+        // make the iron-ajax call
+        postData: function (actionName, params) {
+            var self = this;
+            var dataAjax = this.$.dataAjax;
+            this.body = {
+                'actionName': actionName,
+                'params': params
+            };
+            dataAjax.body = this.body;
+            dataAjax.generateRequest();
+            return new Promise(function (resolve, reject) {
+                self.resolve = resolve;
+                self.reject = reject;
+            })
+        },
+
+        onResponse: function (response) {
+            this.resolve(response);
+            this.resolve = null;
+            this.reject = null;
+            this.body = null;
+        },
+
+        onError: function (error) {
+            this.reject(error);
+            console.error("Request '" + this.body.actionName + "' rejected with the following parameters: " + this.body.params)
+            this.resolve = null;
+            this.reject = null;
+            this.body = null;
+        }
+
+    });
+</script>

@@ -1,0 +1,92 @@
+<link rel="import" href="../../../../imports/navgoco-import.html"/>
+<link rel="import" href="../../../../imports/lodash-import.html">
+
+<dom-module id="turbo-menu">
+    <template>
+        <ul id='turbo_menu' class='nav'></ul>
+    </template>
+</dom-module>
+
+<script>
+
+    Polymer({
+        is: "turbo-menu",
+        properties: {
+            links: {
+                type: Array,
+                notify: false
+            }
+        },
+
+        observers: [
+            'initTree(links.*)'
+        ],
+
+        unflatTree: function (links) {
+            var result = "";
+            var previousIndent = null;
+            G.toArray(links).forEach(function (link) {
+                if (previousIndent == null) {
+                } else if (link.indent > previousIndent) {
+                    result += "<ul>\n"
+                } else if (link.indent < previousIndent) {
+                    result += "</li></ul></li>\n";
+                } else {
+                    result += "</li>\n";
+                }
+                previousIndent = link.indent;
+                result += _.template("<li><a href='<%=href%>'><%=name%></a>\n")({href: link.action, name: link.name});
+            });
+            for (var i = 0; i < previousIndent; i++) {
+                result += "</li></ul>\n";
+            }
+            result += "</li>\n";
+            return result
+        },
+
+
+        initTree: function() {
+            var self = this;
+            if(self.links==null) {
+                return;
+            }
+            var links_as_tree = self.unflatTree(self.links);
+            var turbo_menu = self.$.turbo_menu;
+            Polymer.dom(turbo_menu).innerHTML = links_as_tree;
+
+            // Initialize navgoco with default options
+            $(turbo_menu).navgoco({
+                caretHtml: '',
+                accordion: false,
+                openClass: 'open',
+                save: true,
+                cookie: {
+                    name: 'turbo_main_menu',
+                    expires: false,
+                    path: '/'
+                },
+                slide: {
+                    duration: 400,
+                    easing: 'swing'
+                },
+                onClickAfter: function (e, submenu) {
+                    /*e.preventDefault();*/
+                    $(turbo_menu).find('li').removeClass('active');
+                    var li = $(this).parent();
+                    var lis = li.parents('li');
+                    li.addClass('active');
+                    lis.addClass('active');
+                },
+            });
+        },
+
+
+        ready: function () {
+            var self = this;
+            setTimeout(function () {
+                self.initTree();
+            }, 10);
+        }
+
+    });
+</script>

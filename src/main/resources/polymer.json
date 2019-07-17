@@ -1,0 +1,9 @@
+{
+  "entrypoint": "index.html",
+  "shell": "app/components/pd-dashboard/pd-dashboard.html",
+  "fragments": [
+    "app/components/pd-drawer/pd-drawer.html",
+    "app/components/pd-flatiron-director/pd-flatiron-director.html",
+    "app/components/pd-list/pd-list-item.html"
+  ]
+}

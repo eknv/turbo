@@ -1,0 +1,89 @@
+<link rel="import" href="../../../imports/moment-with-locales-import.html"/>
+<link rel="import" href="../../../imports/date-time-period-picker-import.html"/>
+
+
+<dom-module id="date-period-picker">
+    <template>
+
+        <style>
+            paper-input-container {
+                padding-left:5px;
+                padding-right:10px;
+            }
+        </style>
+
+        <paper-input-container always-float-label>
+            <label>{{name}}</label>
+            <input id="period_picker" type="text"/>
+        </paper-input-container>
+
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+        is: 'date-period-picker',
+
+        properties: {
+            name: {
+                type: String
+            },
+            fromDate: {
+                type: Object,
+                reflectToAttribute: true,
+                notify: true
+            },
+            toDate: {
+                type: Object,
+                reflectToAttribute: true,
+                notify: true
+            }
+        },
+
+
+        ready: function () {
+
+            var self = this;
+
+            setTimeout(function () {
+
+                var period_picker = self.$.period_picker;
+                var options = {
+                    timepicker: false,
+                    tabIndex: 0,
+                    formatDate: 'YYYY-MM-D',
+                    formatDecoreDateWithYear: 'YYYY-MM-D',
+                    norange: false,
+                    cells: [1, 2],
+                    animation: true,
+                    todayButton: true,
+                    clearButtonInButton: true,
+                    onOkButtonClick: function () {
+                        if (this.period != null && this.period.length > 0) {
+                            console.log(this.period[0])
+                            console.log(self.fromDate)
+                            self.fromDate = this.period[0];
+                        }
+                        if (this.period != null && this.period.length > 1) {
+                            console.log(this.period[1])
+                            console.log(self.toDate)
+                            self.toDate = this.period[1];
+                        }
+                    },
+                    onClearButtonClick: function () {
+                        self.fromDate = null;
+                        self.toDate = null;
+                    }
+                };
+
+                $(period_picker).periodpicker(options)
+                $(period_picker).periodpicker('value', [self.fromDate, self.toDate]);
+
+            }, 100);
+
+
+        }
+
+
+    });
+</script>

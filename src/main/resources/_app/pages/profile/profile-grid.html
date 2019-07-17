@@ -1,0 +1,2698 @@
+<dom-module id="profile-grid">
+
+    <link rel="import" href="../../../../imports/slickgrid-import.html">
+    <link rel="import" href="../../../../imports/moment-with-locales-import.html">
+    <link rel="import" href="../../../../_framework/_bl/utils/general-utils-import.html">
+    <link rel="import" href="../../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html"/>
+    <link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="../../../../bower_components/iron-icons/av-icons.html">
+    <link rel="import" href="../../../../bower_components/paper-tabs/paper-tabs.html"/>
+    <link rel="import" href="../../../../bower_components/paper-tabs/paper-tab.html"/>
+    <link rel="import" href="../../../../bower_components/iron-pages/iron-pages.html"/>
+    <link rel="import" href="../../../../bower_components/iron-collapse/iron-collapse.html"/>
+    <link rel="import" href="../../../../bower_components/paper-styles/paper-styles.html"/>
+    <link rel="import" href="../../../../bower_components/paper-styles/shadow.html"/>
+    <link rel="import" href="../../../../bower_components/iron-icons/image-icons.html">
+    <link rel="import" href="../../../../bower_components/iron-signals/iron-signals.html">
+    <link rel="import" href="../../../components/turbo-entity/base-grid.html">
+
+    <template>
+
+        <style is="custom-style">
+
+            paper-tabs paper-tab.iron-selected {
+                color: #2536ff;
+            }
+
+            paper-tabs {
+                --paper-tabs-selection-bar-color: #2536ff;
+            }
+
+            .flex {
+                @apply(--layout-horizontal);
+            }
+
+            .bordered_group {
+                border-width: 1px;
+                border-style: solid;
+                border-color: red darkslateblue;
+                margin-top: 15px;
+                padding-bottom: 10px;
+            }
+
+            .flex-vertical {
+                @apply(--layout-vertical);
+            }
+
+            .flex-horizontal {
+                @apply(--layout-horizontal);
+            }
+
+            .flex-end-align {
+                @apply(--layout-horizontal);
+                @apply(--layout-end);
+            }
+
+            paper-icon-button.firstRowButtons {
+                width: 50px;
+                height: 50px;
+            }
+
+        </style>
+
+        <!--Bookmark Interfacing-->
+        <iron-signals on-iron-signal-publish-bookmark="publishBookmark"></iron-signals>
+        <iron-signals on-iron-signal-load-bookmark="loadBookmark"></iron-signals>
+        <iron-signals on-iron-signal-send-bookmarks="sendBookmarks"></iron-signals>
+
+        <paper-icon-button class="firstRowButtons" icon="icons:save" on-tap="storeData"
+                           title="Store data"></paper-icon-button>
+        <paper-icon-button class="firstRowButtons" icon="icons:motorcycle" on-tap="executeSequelJS"
+                           title="Execute sequel"></paper-icon-button>
+        <paper-icon-button class="firstRowButtons" icon="icons:autorenew" on-tap="reloadLibraries"
+                           title="Reload Base Script Engine"></paper-icon-button>
+        <paper-icon-button class="firstRowButtons" icon="icons:file-upload" on-tap="applyChanges"
+                           title="Apply changes"></paper-icon-button>
+        <paper-icon-button class="firstRowButtons" icon="icons:arrow-back" on-tap="backwardHistory"
+                           title="Backward History"></paper-icon-button>
+        <paper-icon-button class="firstRowButtons" icon="icons:arrow-forward" on-tap="forwardHistory"
+                           title="Forward History"></paper-icon-button>
+
+        <paper-tabs selected="{{data.selectedTab}}" autoselect autoselect-delay="1000">
+            <paper-tab>Models</paper-tab>
+            <paper-tab>Menus</paper-tab>
+            <paper-tab>Access Control</paper-tab>
+        </paper-tabs>
+
+        <iron-pages selected="{{data.selectedTab}}">
+            <!--First Tab-->
+            <div>
+                <div class="container flex-vertical">
+                    <!--Row for the entities, views and the properties -->
+                    <div class="container flex-horizontal">
+                        <base-grid id="modelGrid" columns="{{modelGridColumns}}" metadata="{{modelGridMetadata}}"
+                                   data="{{modelGridData}}" grid-objects="{{gridObjects}}"
+                                   default="[[defaultModel]]"></base-grid>
+
+                        <base-grid id="viewJoinsGrid" columns="{{viewJoinsGridColumns}}"
+                                   metadata="{{viewJoinsGridMetadata}}"
+                                   data="{{viewJoinsGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+
+                        <base-grid id="modelFieldsGrid" columns="{{modelFieldsGridColumns}}"
+                                   metadata="{{modelFieldsGridMetadata}}" data="{{modelFieldsGridData}}"
+                                   grid-objects="{{gridObjects}}" default="[[defaultField]]"></base-grid>
+
+                        <base-grid id="fieldPropertiesGrid" columns="{{fieldPropertiesGridColumns}}"
+                                   metadata="{{fieldPropertiesGridMetadata}}"
+                                   data="{{fieldPropertiesGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+                    </div>
+
+                    <!--Row for the constraints -->
+                    <div class="container flex">
+                        <base-grid id="modelConstraintsGrid" columns="{{modelConstraintsGridColumns}}"
+                                   metadata="{{modelConstraintsGridMetadata}}"
+                                   data="{{modelConstraintsGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+                    </div>
+
+                    <!--Row for the buttons and workflows-->
+                    <div class="container flex">
+                        <base-grid id="buttonWorkflowGrid" columns="{{buttonWorkflowGridColumns}}"
+                                   metadata="{{buttonWorkflowGridMetadata}}" data="{{buttonWorkflowGridData}}"
+                                   grid-objects="{{gridObjects}}" default="[[defaultButtonWorkflow]]"></base-grid>
+
+                        <base-grid id="buttonWorkflowTransitionTreeGrid"
+                                   columns="{{buttonWorkflowTransitionTreeGridColumns}}"
+                                   metadata="{{buttonWorkflowTransitionTreeGridMetadata}}"
+                                   data="{{buttonWorkflowTransitionTreeGridData}}"
+                                   grid-objects="{{gridObjects}}"></base-grid>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!--Second Tab-->
+            <div>
+                <div class="container flex-vertical">
+                    <base-grid id="leftMenuTreeGrid" columns="{{leftMenuTreeGridColumns}}"
+                               metadata="{{leftMenuTreeGridMetadata}}"
+                               data="{{leftMenuTreeGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+                </div>
+            </div>
+
+            <!--Third Tab-->
+            <div>
+
+                <div class="container flex-end-align">
+
+                    <div>
+                        <paper-tabs selected="{{data.selectedEntityTab}}" autoselect autoselect-delay="1000">
+                            <paper-tab>Entity Buttons</paper-tab>
+                            <paper-tab>Entity Fields</paper-tab>
+                        </paper-tabs>
+                        <iron-pages selected="{{data.selectedEntityTab}}" class="bordered_group">
+                            <!--First Tab-->
+                            <div>
+                                <base-grid id="modelActionsTreeGrid" columns="{{modelActionsTreeGridColumns}}"
+                                           metadata="{{modelActionsTreeGridMetadata}}"
+                                           data="{{modelActionsTreeGridData}}"
+                                           grid-objects="{{gridObjects}}"></base-grid>
+                            </div>
+                            <!--Second Tab-->
+                            <div>
+                                <base-grid id="entityFieldsTreeGrid" columns="{{entityFieldsTreeGridColumns}}"
+                                           metadata="{{entityFieldsTreeGridMetadata}}"
+                                           data="{{entityFieldsTreeGridData}}"
+                                           grid-objects="{{gridObjects}}"></base-grid>
+                            </div>
+                        </iron-pages>
+                    </div>
+
+                    <div class="bordered_group">
+                        <base-grid id="securityRulesGrid" columns="{{securityRulesGridColumns}}"
+                                   metadata="{{securityRulesGridMetadata}}"
+                                   data="{{securityRulesGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+                    </div>
+
+                    <div>
+                        <paper-tabs selected="{{data.selectedUserGroupTab}}" autoselect autoselect-delay="1000">
+                            <paper-tab>Groups</paper-tab>
+                            <paper-tab>Users</paper-tab>
+                        </paper-tabs>
+                        <iron-pages selected="{{data.selectedUserGroupTab}}" class="bordered_group">
+                            <!--First Tab-->
+                            <div class="flex-horizontal">
+                                <div>
+                                    <base-grid id="userGroupsTreeGrid" columns="{{userGroupsTreeGridColumns}}"
+                                               metadata="{{userGroupsTreeGridMetadata}}"
+                                               data="{{userGroupsTreeGridData}}"
+                                               grid-objects="{{gridObjects}}"></base-grid>
+                                </div>
+                                <iron-collapse id="adjustGroups">
+                                    <div>
+                                        <base-grid id="users4GroupTreeGrid" columns="{{users4GroupTreeGridColumns}}"
+                                                   metadata="{{users4GroupTreeGridMetadata}}"
+                                                   data="{{users4GroupTreeGridData}}"
+                                                   grid-objects="{{gridObjects}}"></base-grid>
+                                    </div>
+                                </iron-collapse>
+                            </div>
+                            <!--Second Tab-->
+                            <div>
+                                <base-grid id="usersTreeGrid" columns="{{usersTreeGridColumns}}"
+                                           metadata="{{usersTreeGridMetadata}}"
+                                           data="{{usersTreeGridData}}" grid-objects="{{gridObjects}}"></base-grid>
+                            </div>
+                        </iron-pages>
+                    </div>
+
+                </div>
+
+            </div>
+        </iron-pages>
+
+    </template>
+
+
+    <script>
+
+        Polymer({
+            is: "profile-grid",
+            properties: {},
+            observers: [
+                '_selectedTabChanged(data.selectedTab, data.selectedEntityTab, data.selectedUserGroupTab)'
+            ],
+
+            _selectedTabChanged: function (selectedTab, selectedEntityTab, selectedUserGroupTab) {
+                this.updateHistory(selectedTab, selectedEntityTab, selectedUserGroupTab);
+            },
+
+            setGridIdToBookmark: function (bookmark, grid) {
+                var selectedItem = this.getSelectedItem(grid);
+                if (selectedItem != null) {
+                    bookmark[grid] = selectedItem.id;
+                }
+            },
+
+            publishBookmark: function (e) {
+                var bookmarkCounts = this.data.bookmarks.length + 1;
+                var currentTime = moment().format("DD-MM-YYYY hh:mm");
+                var bookmark = {id: bookmarkCounts, name: 'Bookmark ' + bookmarkCounts, time: currentTime}
+
+                bookmark.selectedTab = this.data.selectedTab;
+                bookmark.selectedEntityTab = this.data.selectedEntityTab;
+                bookmark.selectedUserGroupTab = this.data.selectedUserGroupTab;
+
+                this.setGridIdToBookmark(bookmark, "modelGrid");
+                this.setGridIdToBookmark(bookmark, "buttonWorkflowGrid");
+                this.setGridIdToBookmark(bookmark, "buttonWorkflowTransitionTreeGrid");
+                this.setGridIdToBookmark(bookmark, "viewJoinsGrid");
+                this.setGridIdToBookmark(bookmark, "modelFieldsGrid");
+                this.setGridIdToBookmark(bookmark, "fieldPropertiesGrid");
+                this.setGridIdToBookmark(bookmark, "modelConstraintsGrid");
+
+                this.setGridIdToBookmark(bookmark, "leftMenuTreeGrid");
+                this.setGridIdToBookmark(bookmark, "modelActionsTreeGrid");
+                this.setGridIdToBookmark(bookmark, "entityFieldsTreeGrid");
+
+                this.setGridIdToBookmark(bookmark, "securityRulesGrid");
+                this.setGridIdToBookmark(bookmark, "userGroupsTreeGrid");
+                this.setGridIdToBookmark(bookmark, "usersTreeGrid");
+                this.setGridIdToBookmark(bookmark, "users4GroupTreeGrid");
+
+                this.data.bookmarks.push(bookmark);
+
+                this.fire('iron-signal', {name: 'receive-bookmark', data: bookmark});
+            },
+
+
+            selectGridIdFromBookmark: function (bookmark, grid) {
+                if (bookmark[grid]) {
+                    var id = bookmark[grid];
+                    var gridObject = this.getGridObject(grid);
+                    var dataView = gridObject.getData();
+                    var rowIndex = dataView.getRowById(id);
+                    gridObject.setSelectedRows([rowIndex])
+                }
+            },
+
+
+            loadBookmark: function (e) {
+                this.ignoreHistory = true
+
+                var bookmark = e.detail;
+
+                if (bookmark.selectedTab != null) {
+                    this.set("data.selectedTab", bookmark.selectedTab);
+                }
+                if (bookmark.selectedEntityTab != null) {
+                    this.set("data.selectedEntityTab", bookmark.selectedEntityTab);
+                }
+                if (bookmark.selectedUserGroupTab != null) {
+                    this.set("data.selectedUserGroupTab", bookmark.selectedUserGroupTab);
+                }
+
+                this.selectGridIdFromBookmark(bookmark, "modelGrid");
+                this.selectGridIdFromBookmark(bookmark, "buttonWorkflowGrid");
+                this.selectGridIdFromBookmark(bookmark, "buttonWorkflowTransitionTreeGrid");
+                this.selectGridIdFromBookmark(bookmark, "viewJoinsGrid");
+                this.selectGridIdFromBookmark(bookmark, "modelFieldsGrid");
+                this.selectGridIdFromBookmark(bookmark, "fieldPropertiesGrid");
+                this.selectGridIdFromBookmark(bookmark, "modelConstraintsGrid");
+
+                this.selectGridIdFromBookmark(bookmark, "leftMenuTreeGrid");
+                this.selectGridIdFromBookmark(bookmark, "modelActionsTreeGrid");
+                this.selectGridIdFromBookmark(bookmark, "entityFieldsTreeGrid");
+
+                this.selectGridIdFromBookmark(bookmark, "securityRulesGrid");
+                this.selectGridIdFromBookmark(bookmark, "userGroupsTreeGrid");
+                this.selectGridIdFromBookmark(bookmark, "usersTreeGrid");
+                this.selectGridIdFromBookmark(bookmark, "users4GroupTreeGrid");
+
+                this.ignoreHistory = false;
+                this.updateHistory();
+            },
+
+
+            attached: function () {
+                this.loadingFinished = true;
+            },
+
+            ready: function () {
+                this.percentCompleteThreshold = 0;
+                this.searchString = "";
+
+                /**
+                 ** history fields
+                 */
+                this.historyList = [];
+                this.historyMaxLength = 100;
+                this.historyOverflowClearCount = 10;
+                this.currentHistoryIndex = -1;
+
+                var self = this;
+                self.specialTypes = ['Select', 'CreatedBy', 'CreatedDate', 'LastModifiedBy', 'LastModifiedDate', 'ID'];
+                self.primitiveTypes = ['Integer', 'Decimal', 'DateTime', 'Date', 'Time', 'String', 'Boolean'];
+
+                /**
+                 * this object keeps all the "model designer" data
+                 **/
+                self.data = {
+                    models: [],
+                    userGroups: [],
+                    securityRules: [],
+                    modelActivities: [],
+                    bookmarks: [],
+                    leftMenuTreeGridData: [],
+                    selectedTab: 0,
+                    selectedEntityTab: 0,
+                    selectedUserGroupTab: 0
+                };
+                self.loadData();
+
+                self.defaultModel = {
+                    buttonsWorkflows: [],
+                    joins: [],
+                    fields: [],
+                    constraints: []
+                };
+                self.defaultButtonWorkflow = {
+                    workflowTransitions: []
+                };
+                self.defaultField = {
+                    props: {}
+                };
+
+                self.currentModel = self.data.models.length > 0 ? self.data.models[0] : null;
+                self.currentField = null;
+                self.currentButtonWorkflow = null;
+
+                self.gridObjects = [];
+                self.users = [];
+                self.modelFields = [];
+                self.modelActions = [];
+
+                var adjustModelFieldsEditors = function(item) {
+                    //todo/kn.. consider to iterate and find the proper object instead of using the array indexes
+                    if (G.isNullEmpty(item.viewModel)) {
+                        self.modelFieldsGridColumns[0].$editor = "None";
+                        self.modelFieldsGridColumns[1].$editor = "Text";
+                    } else {
+                        self.modelFieldsGridColumns[0].$editor = "Select";
+                        self.modelFieldsGridColumns[1].$editor = "Select";
+                    }
+                }
+                /**
+                 * Entity View Grid
+                 */
+                self.modelGridColumns = [
+                    {id: "name", name: "Name", field: "name", width: 120, editor: Slick.Editors.Text},
+                    {id: "viewModel", name: "View Model", field: "viewModel", width: 120, editor: Slick.Editors.Dynamic,
+                        $editor: "Select",
+                        $options: function (args) {
+                            var thisItem = args.item;
+                            var results = [''];
+                            var modelGridObject = self.getGridObject("modelGrid");
+                            var dataView = modelGridObject.getData();
+                            var items = dataView.getItems();
+                            for (var i = 0; i < items.length; i++) {
+                                var item = items[i];
+                                if (G.isNullEmpty(item.viewModel) && thisItem.id != item.id) {
+                                    results.push(item.name);
+                                }
+                            }
+                            return results;
+                        },
+                        $$postUpdate: function (currentValue, newValue, args) {
+                            adjustModelFieldsEditors(args.item);
+                        }
+                    },
+                    {id: "key", name: "Key", field: "key", width: 100, editor: Slick.Editors.Text},
+                    {id: "clientSide", name: "Client Side", field: "clientSide", width: 100, editor: Slick.Editors.YesNoSelect}
+                ];
+                self.modelGridMetadata = {
+                    title: 'Models',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'up', 'down'],
+                    type: 'grid',
+                    width: '450px',
+                    height: '400px',
+                    refresh: false,
+                    parent: {field: 'models', node: 'modelGrid', parentNode: null, parentId: null}
+                };
+                self.modelGridData = self.data.models;
+
+                /**
+                 * Button Workflow Grid
+                 */
+                self.buttonWorkflowGridColumns = [
+                    {id: "name", name: "name", field: "name", editor: Slick.Editors.Text, header: "Name", width: 80},
+                    {
+                        id: "placement",
+                        name: "placement",
+                        field: "placement",
+                        editor: Slick.Editors.Text,
+                        header: "Placement",
+                        width: 80
+                    },
+                    {
+                        id: "order",
+                        name: "order",
+                        field: "order",
+                        editor: Slick.Editors.Text,
+                        header: "Order",
+                        width: 80
+                    },
+                    {id: "icon", name: "icon", field: "icon", editor: Slick.Editors.Text, header: "Icon", width: 80},
+                    {
+                        id: "action",
+                        name: "action",
+                        field: "action",
+                        editor: Slick.Editors.Text,
+                        header: "Action",
+                        width: 80
+                    },
+                    {
+                        id: "isWorkflow",
+                        name: "isWorkflow",
+                        field: "isWorkflow",
+                        editor: Slick.Editors.Text,
+                        header: "Is Workflow",
+                        width: 150
+                    }
+                ];
+                self.buttonWorkflowGridMetadata = {
+                    title: 'Buttons & Workflows',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'up', 'down'],
+                    type: 'grid',
+                    width: '500px',
+                    height: '250px',
+                    refresh: false,
+                    parent: {
+                        field: 'buttonsWorkflows',
+                        node: 'buttonWorkflowGrid',
+                        parentNode: 'modelGrid',
+                        parentId: null
+                    }
+                };
+                self.buttonWorkflowGridData = self.getFieldArray('buttonsWorkflows');
+
+
+                /**
+                 * Workflow Transitions Tree-Grid
+                 */
+                self.buttonWorkflowTransitionTreeGridColumns = [
+                    {
+                        id: "icon",
+                        name: "Icon",
+                        field: "icon",
+                        width: 100,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Text
+                    },
+                    {id: "fieldName", name: "FieldName", field: "fieldName", width: 100, editor: Slick.Editors.Text},
+                    {id: "name", name: "Name", field: "name", width: 100, editor: Slick.Editors.Text},
+                    {id: "fromState", name: "From State", field: "fromState", width: 100, editor: Slick.Editors.Text},
+                    {id: "toState", name: "To State", field: "toState", width: 100, editor: Slick.Editors.Text},
+                    {id: "sortOrder", name: "Sort Order", field: "sortOrder", width: 100, editor: Slick.Editors.Text},
+                    {id: "action", name: "Action", field: "action", width: 120, editor: Slick.Editors.Text}
+                ];
+
+                self.buttonWorkflowTransitionTreeGridMetadata = {
+                    title: 'Workflow Transitions',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'back', 'forward', 'up', 'down', 'start-test', 'stop-test'],
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '2',
+                    width: '600px',
+                    height: '250px',
+                    refresh: false,
+                    parent: {
+                        field: 'workflowTransitions',
+                        node: 'buttonWorkflowTransitionTreeGrid',
+                        parentNode: 'buttonWorkflowGrid',
+                        parentId: null
+                    }
+                };
+                self.buttonWorkflowTransitionTreeGridData = [];
+                var aliasToModelname = {}
+                var updateAliasToModel = function (items, alias) {
+                    var results = getWithJoinAlias(items, alias);
+                    if(results==null) {
+                        return;
+                    }
+                    for (var i = 0; i < results.length; i++) {
+                        var item = results[i];
+                        if (G.isNullEmpty(item.field)) {
+                            continue;
+                        }
+                        var modelName = aliasToModelname[alias]
+                        var model = self.getModelByName(modelName)
+                        var field = self.getFieldByName(model, item.field);
+                        // the model behind the field
+                        var fieldType = field.props.type
+                        if (G.isNullEmpty(fieldType)) {
+                            continue;
+                        }
+                        // if this join item has an alias, repeat this method for this alias recursively
+                        if (!G.isNullEmpty(item.alias)) {
+                            aliasToModelname[item.alias] = fieldType;
+                            updateAliasToModel(items, item.alias);
+                        }
+                    }
+                }
+                var getWithJoinAlias = function (items, alias) {
+                    var results = [];
+                    for (var i = 0; i < items.length; i++) {
+                        var item = items[i];
+                        if (item.joinAlias == alias) {
+                            results.push(item);
+                        }
+                    }
+                    return results;
+                }
+                /**
+                 * View Joins Grid
+                 */
+                self.viewJoinsGridColumns = [
+                    {
+                        id: "joinAlias", name: "Join Alias", field: "joinAlias", width: 120, editor: Slick.Editors.Dynamic,
+                        $editor: "Select",
+                        // all of the previously defined aliases in this grid as well as in the models grid
+                        $options: function (args) {
+                            //todo/kn introduce assert here
+                            if (G.isNullEmpty(self.currentModel.viewModel)) {
+                                throw new Error("Joins are possible just for the views!")
+                            }
+                            var currentModelAlias = self.currentModel.name;
+                            var thisItem = args.item;
+                            var results = [currentModelAlias];
+                            var modelGridObject = self.getGridObject("viewJoinsGrid");
+                            var dataView = modelGridObject.getData();
+                            var items = dataView.getItems();
+                            for (var i = 0; i < items.length; i++) {
+                                var item = items[i];
+                                if (!G.isNullEmpty(item.alias) && thisItem.id != item.id) {
+                                    results.push(item.alias);
+                                }
+                            }
+                            return results;
+                        }
+                    },
+                    {
+                        id: "field", name: "field", field: "field", width: 120, editor: Slick.Editors.Dynamic,
+                        $editor: "Select",
+                        // all of the fields belonging to the model associated to the selected joinAlias
+                        $options: function (args) {
+                            var thisItem = args.item;
+                            var thisItemJoinAlias = thisItem.joinAlias;
+                            if (G.isNullEmpty(thisItemJoinAlias)) {
+                                return [];
+                            }
+                            aliasToModelname = {}
+                            var currentModelAlias = self.currentModel.name;
+                            aliasToModelname[currentModelAlias] = self.currentModel.viewModel;
+                            var modelGridObject = self.getGridObject("viewJoinsGrid");
+                            var dataView = modelGridObject.getData();
+                            var items = dataView.getItems();
+                            updateAliasToModel(items, currentModelAlias)
+                            var aliasModelName = aliasToModelname[thisItemJoinAlias]
+                            var aliasModel = self.getModelByName(aliasModelName)
+                            var modelFieldNames = self.getModelFieldNames(aliasModel, true);
+                            return modelFieldNames;
+                        }
+                    },
+                    {id: "alias", name: "Alias", field: "alias", width: 120, editor: Slick.Editors.Text}
+                ];
+                // enable the join grid if the view-model line has viewModel
+                var isViewJoinsGridEditable = function () {
+                    return self.currentModel != null && !G.isNullEmpty(self.currentModel.viewModel);
+                }
+                self.viewJoinsGridMetadata = {
+                    title: 'View Joins',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: isViewJoinsGridEditable.bind(this),
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'up', 'down'],
+                    type: 'grid',
+                    width: '360px',
+                    height: '400px',
+                    refresh: false,
+                    parent: {field: 'joins', node: 'viewJoinsGrid', parentNode: 'modelGrid', parentId: null}
+                };
+                self.viewJoinsGridData = self.getFieldArray(self.viewJoinsGridMetadata.parent.field);
+
+
+                /**
+                 * Fields Grid
+                 */
+                self.modelFieldsGridColumns = [
+                    {
+                        id: "modelAlias", name: "Model Alias", field: "modelAlias", width: 120, editor: Slick.Editors.Dynamic,
+                        // Note that the $editor here is being adjusted depending if a model is selected or a view
+                        $editor: "Select",
+                        // possible models.. in caee of a model, the model name.. otherwise the model names of the related joins
+                        $options: function (args) {
+                            // check whether the selected model is a model or view
+                            if (G.isNullEmpty(self.currentModel.viewModel)) {
+                                return [self.currentModel.name]
+                            } else {
+                                // if it is a view
+                                // list the aliases of all of the entries in the join table
+                                var results = [self.currentModel.name]
+                                var modelGridObject = self.getGridObject("viewJoinsGrid");
+                                var dataView = modelGridObject.getData();
+                                var items = dataView.getItems();
+                                for (var i = 0; i < items.length; i++) {
+                                    var item = items[i];
+                                    if (!G.isNullEmpty(item.alias)) {
+                                        results.push(item.alias);
+                                    }
+                                }
+                                return results;
+                            }
+                        }
+                    },
+                    {id: "name", name: "Name", field: "name", editor: Slick.Editors.Dynamic,
+                        // Note that the $editor here is being adjusted depending if a model is selected or a view
+                        $editor: "Select",
+                        // all of the fields belonging to the model selected in this line
+                        $options: function (args) {
+                            var thisItem = args.item;
+                            // if no alias is set, return empty array
+                            if (G.isNullEmpty(thisItem.modelAlias)) {
+                                return ['']
+                            } else {
+                                // otherwise get the model behind the alias
+                                // get a list of the fields of this related model
+                                var thisModelName;
+                                if(G.isNullEmpty(self.currentModel.viewModel)) {
+                                    thisModelName = self.currentModel.name;
+                                } else {
+                                    aliasToModelname = {}
+                                    var currentModelAlias = self.currentModel.name;
+                                    aliasToModelname[currentModelAlias] = self.currentModel.viewModel;
+                                    var modelGridObject = self.getGridObject("viewJoinsGrid");
+                                    var dataView = modelGridObject.getData();
+                                    var items = dataView.getItems();
+                                    updateAliasToModel(items, currentModelAlias)
+                                    thisModelName = aliasToModelname[thisItem.modelAlias]
+                                }
+                                var thisModel = self.getModelByName(thisModelName)
+                                var thisModelFieldNames = self.getModelFieldNames(thisModel, false);
+                                return thisModelFieldNames;
+                            }
+                        }
+                    },
+                    {id: "function", name: "Function", field: "function", editor: Slick.Editors.Text}
+                ];
+                var gotoRelatedModelField = function () {
+                    self.ignoreHistory = true;
+                    // get the selected field and model
+                    var selectedModel = this.getSelectedItem("modelGrid");
+                    var selectedField = this.getSelectedItem("modelFieldsGrid");
+                    if (selectedModel == null || selectedField == null) {
+                        self.ignoreHistory = false;
+                        return;
+                    }
+                    // find the related model to the currently selected field
+                    var relatedModel = null;
+                    for (var i = 0; i < this.data.models.length; i++) {
+                        var model = this.data.models[i];
+                        if (model.name == selectedField.props.type) {
+                            relatedModel = model;
+                            break;
+                        }
+                    }
+                    // if a related model could be found, select it in the grid, otherwise just return
+                    if (relatedModel == null) {
+                        self.ignoreHistory = false;
+                        return;
+                    } else {
+                        var modelGridObject = this.getGridObject("modelGrid");
+                        var rowIndex = modelGridObject.getData().getRowById(relatedModel.id);
+                        modelGridObject.setSelectedRows([rowIndex])
+                    }
+                    // find the related field to the currently selected model in the related model
+                    var relatedField = null;
+                    for (var i = 0; i < relatedModel.fields.length; i++) {
+                        var field = relatedModel.fields[i];
+                        if (field.props.type == selectedModel.name) {
+                            relatedField = field;
+                            break;
+                        }
+                    }
+                    // if a related field could be found, select it in the grid
+                    if (relatedField != null) {
+                        var modelFieldsGridObject = this.getGridObject("modelFieldsGrid");
+                        var rowIndex = modelFieldsGridObject.getData().getRowById(relatedField.id);
+                        modelFieldsGridObject.setSelectedRows([rowIndex])
+                    }
+                    self.ignoreHistory = false;
+                    self.updateHistory();
+                }
+                self.modelFieldsGridMetadata = {
+                    title: 'Fields',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'up', 'down',
+                        {
+                            title: 'Go to related..',
+                            icon: 'icons:compare-arrows',
+                            fnc: gotoRelatedModelField.bind(self)
+                        }
+                    ],
+                    type: 'grid',
+                    width: '300px',
+                    height: '400px',
+                    refresh: false,
+                    parent: {field: 'fields', node: 'modelFieldsGrid', parentNode: 'modelGrid', parentId: null}
+                };
+                self.modelFieldsGridData = self.getFieldArray(self.modelFieldsGridMetadata.parent.field);
+
+
+                /**
+                 * Field Properties Grid
+                 */
+                self.fieldPropertiesGridColumns = [
+                    {
+                        id: "property", name: "Property", field: "property", width: 200,
+                        formatter: "NodeColumnFormatter",
+                        toolTip: function (row, cell, item, column) {
+                            return item != null ? (item.toolTip != null ? item.toolTip : "") : "";
+                        }
+                    },
+                    {
+                        id: "value", name: "Value", field: "value", width: 300,
+                        editor: Slick.Editors.Dynamic,
+                        $$editable: function (item, column) {
+                            return true;
+//                            return !self.isDisabled(item, column);
+                        }
+                    }
+                ];
+                self.fieldPropertiesGridMetadata = {
+                    title: 'Field Properties',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '2',
+                    width: '530px',
+                    height: '400px',
+                    refresh: false,
+                    parent: {
+                        field: 'props',
+                        node: 'fieldPropertiesGrid',
+                        parentNode: 'modelFieldsGrid',
+                        parentId: null
+                    }
+                };
+                self.fieldPropertiesGridData = self.getFieldPropertyRows(self.currentField);
+
+
+                /**
+                 * View Constraints Grid
+                 */
+                self.modelConstraintsGridColumns = [
+                    {id: "name", name: "Name", field: "name", width: 100, editor: Slick.Editors.Text},
+                    {id: "type", name: "Type", field: "type", width: 80, editor: Slick.Editors.Text},
+                    {id: "fields", name: "Fields", field: "fields", width: 300, editor: Slick.Editors.Text}
+                ];
+                self.modelConstraintsGridMetadata = {
+                    title: 'Constraints',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'up', 'down'],
+                    type: 'grid',
+                    width: '520px',
+                    height: '400px',
+                    refresh: false,
+                    parent: {
+                        field: 'constraints',
+                        node: 'modelConstraintsGrid',
+                        parentNode: 'modelGrid',
+                        parentId: null
+                    }
+                };
+                self.modelConstraintsGridData = self.getFieldArray(self.modelConstraintsGridMetadata.parent.field);
+
+
+                /**
+                 * Left Menu Tree-Grid
+                 */
+                self.leftMenuTreeGridColumns = [
+                    {
+                        id: "icon",
+                        name: "Icon",
+                        field: "icon",
+                        width: 150,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Text
+                    },
+                    {id: "name", name: "Name", field: "name", width: 150, editor: Slick.Editors.Text},
+                    {id: "tooltip", name: "Tooltip", field: "tooltip", width: 150, editor: Slick.Editors.Text},
+                    {id: "action", name: "Action", field: "action", width: 150, editor: Slick.Editors.Text}
+                ];
+                self.leftMenuTreeGridMetadata = {
+                    title: 'Left Menu',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: ['add', 'edit', 'delete', 'back', 'forward', 'up', 'down'],
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '3',
+                    width: '600px',
+                    height: '220px',
+                    refresh: false,
+                    parent: {
+                        field: 'leftMenu',
+                        node: 'leftMenuTreeGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.leftMenuTreeGridData = self.data.leftMenuTreeGridData;
+
+
+                /**
+                 * Entity Buttons Tree-Grid
+                 */
+                self.modelActionsTreeGridColumns = [
+                    {
+                        id: "name",
+                        name: "Entity/View/Action name",
+                        field: "name",
+                        width: 200,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Text
+                    },
+                    {id: "isView", name: "Is View?", field: "isView", width: 80, editor: Slick.Editors.Checkbox},
+                    {id: "version", name: "Version", field: "version", width: 100, editor: Slick.Editors.Text},
+                    {
+                        id: "isAbstract",
+                        name: "Is Abstract?",
+                        field: "isAbstract",
+                        width: 100,
+                        editor: Slick.Editors.Checkbox
+                    }
+                ];
+                self.modelActionsTreeGridMetadata = {
+                    title: 'Entity Actions',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: false,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: null,
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '3',
+                    width: '300px',
+                    height: '400px',
+                    leaveSpaceForNewRows: true,
+                    refresh: false,
+                    parent: {
+                        field: 'modelActions',
+                        node: 'modelActionsTreeGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.modelActionsTreeGridData = self.modelActions;
+
+
+                /**
+                 * Entity Fields Tree-Grid
+                 */
+                self.entityFieldsTreeGridColumns = [
+                    {
+                        id: "name",
+                        name: "Entity/View/Field",
+                        field: "name",
+                        width: 200,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Text
+                    },
+                    {id: "isView", name: "Is View?", field: "isView", width: 80, editor: Slick.Editors.Text}
+                ];
+                self.entityFieldsTreeGridMetadata = {
+                    title: 'Entity Fields',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: false,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: null,
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '3',
+                    width: '300px',
+                    height: '400px',
+                    leaveSpaceForNewRows: true,
+                    refresh: false,
+                    parent: {
+                        field: 'entityFields',
+                        node: 'entityFieldsTreeGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.entityFieldsTreeGridData = self.modelFields;
+
+                /**
+                 * Security Rules Tree-Grid
+                 */
+                self.securityRulesGridColumns = [
+                    {
+                        id: "type",
+                        name: "Type",
+                        field: "type",
+                        width: 170,
+                        editor: Slick.Editors.Dynamic,
+                        $$editable: false
+                    },
+                    {
+                        id: "value",
+                        name: "Value",
+                        field: "value",
+                        width: 250,
+                        editor: Slick.Editors.Dynamic,
+                        $$editable: false
+                    },
+                    {id: "filter", name: "Filter", field: "filter", width: 150, editor: Slick.Editors.Text},
+                    {id: "dbFilter", name: "DB Filter", field: "dbFilter", width: 150, editor: Slick.Editors.Text},
+                    {id: "searchable", name: "Searchable", field: "searchable", width: 150, editor: Slick.Editors.Text},
+                    {id: "inGrid", name: "In Grid", field: "inGrid", width: 150, editor: Slick.Editors.Text},
+                    {id: "inPreview", name: "In Preview", field: "inPreview", width: 150, editor: Slick.Editors.Text}
+                ];
+                var addNewRule = function () {
+                    /**
+                     * check which tabs are selected
+                     * then get the selected item from the respective tables
+                     * if none selected, then show message
+                     * get the selected item, check which level it is and depending on this, set the types
+                     **/
+                    var selectedEntityTab = self.data.selectedEntityTab;
+                    var selectedUserGroupTab = self.data.selectedUserGroupTab;
+                    var type = "";
+                    var entityFieldActionUserGroup;
+                    var firstSelectedItem;
+                    if (selectedEntityTab == 0) {
+                        if (self.modelActionsTreeGridMetadata.selection
+                                && self.modelActionsTreeGridMetadata.selection.rows
+                                && self.modelActionsTreeGridMetadata.selection.rows.length > 0) {
+                            var firstSelectedRowIndex = self.modelActionsTreeGridMetadata.selection.rows[0];
+                            var modelActionsTreeGridObject = self.getGridObject("modelActionsTreeGrid");
+                            var dataView = modelActionsTreeGridObject.getData();
+                            firstSelectedItem = dataView.getItemByIdx(firstSelectedRowIndex);
+                            if (firstSelectedItem.indent == 0) {
+                                type += "Entity-";
+                                entityFieldActionUserGroup = firstSelectedItem.name;
+                            } else if (firstSelectedItem.indent == 1) {
+                                type += "Entity-Action-";
+                                // find the parent as well
+                                var parentItem = dataView.getRowBy(firstSelectedRowIndex, -1, 1, 0, null);
+                                entityFieldActionUserGroup = parentItem.name + " : " + firstSelectedItem.name;
+                            } else {
+                                throw new Error("invalid indent");
+                            }
+
+                        } else {
+                            alert("please select an entity first!")
+                            return;
+                        }
+                    } else if (selectedEntityTab == 1) {
+                        if (self.entityFieldsTreeGridMetadata.selection
+                                && self.entityFieldsTreeGridMetadata.selection.rows
+                                && self.entityFieldsTreeGridMetadata.selection.rows.length > 0) {
+                            var firstSelectedRowIndex = self.entityFieldsTreeGridMetadata.selection.rows[0];
+                            var entityFieldsTreeGridObject = self.getGridObject("entityFieldsTreeGrid");
+                            var dataView = entityFieldsTreeGridObject.getData();
+                            firstSelectedItem = dataView.getItemByIdx(firstSelectedRowIndex);
+                            if (firstSelectedItem.indent == 0) {
+                                type += "Entity-";
+                                entityFieldActionUserGroup = firstSelectedItem.name;
+                            } else if (firstSelectedItem.indent == 1) {
+                                type += "Entity-Field-";
+                                // find the parent as well
+                                var parentItem = dataView.getRowBy(firstSelectedRowIndex, -1, 1, 0, null);
+                                entityFieldActionUserGroup = parentItem.name + " : " + firstSelectedItem.name;
+                            } else {
+                                throw new Error("invalid indent");
+                            }
+                        } else {
+                            alert("please select an entity first!")
+                            return;
+                        }
+                    } else {
+                        throw new Error("invalid entity tab")
+                    }
+
+                    var secondSelectedItem;
+                    if (selectedUserGroupTab == 0) {
+                        if (self.userGroupsTreeGridMetadata.selection
+                                && self.userGroupsTreeGridMetadata.selection.rows
+                                && self.userGroupsTreeGridMetadata.selection.rows.length > 0) {
+                            var secondSelectedRowIndex = self.userGroupsTreeGridMetadata.selection.rows[0];
+                            var userGroupsTreeGridObject = self.getGridObject("userGroupsTreeGrid");
+                            var dataView = userGroupsTreeGridObject.getData();
+                            secondSelectedItem = dataView.getItemByIdx(secondSelectedRowIndex);
+                            if (secondSelectedItem.indent == 0) {
+                                type += "Group";
+                            } else if (secondSelectedItem.indent == 1) {
+                                alert("Please select a group node!")
+                                return;
+                            } else {
+                                throw new Error("invalid indent");
+                            }
+                            entityFieldActionUserGroup += " : " + secondSelectedItem.groupUserName;
+                        } else {
+                            alert("please select a user-group first!")
+                            return;
+                        }
+                    } else if (selectedUserGroupTab == 1) {
+                        if (self.usersTreeGridMetadata.selection
+                                && self.usersTreeGridMetadata.selection.rows
+                                && self.usersTreeGridMetadata.selection.rows.length > 0) {
+                            var secondSelectedRowIndex = self.usersTreeGridMetadata.selection.rows[0];
+                            var usersTreeGridObject = self.getGridObject("usersTreeGrid");
+                            var dataView = usersTreeGridObject.getData();
+                            secondSelectedItem = dataView.getItemByIdx(secondSelectedRowIndex);
+                            type += "User";
+                            entityFieldActionUserGroup += " : " + secondSelectedItem.login;
+                        } else {
+                            alert("please select a user-group first!")
+                            return;
+                        }
+                    } else {
+                        throw Error("invalid user-group tab")
+                    }
+
+                    var securityRulesGridObject = self.getGridObject("securityRulesGrid");
+                    var dataView = securityRulesGridObject.getData();
+                    var securityRulesGridSelectedRowIndex = 0;
+                    if (self.securityRulesGridMetadata.selection
+                            && self.securityRulesGridMetadata.selection.rows
+                            && self.securityRulesGridMetadata.selection.rows.length > 0) {
+                        securityRulesGridSelectedRowIndex = self.securityRulesGridMetadata.selection.rows[0];
+                    }
+                    var securityRules = dataView.getItems();
+                    for (var i = 0; i < securityRules.length; i++) {
+                        var securityRule = securityRules[i];
+                        if (securityRule.type == type && securityRule.value == entityFieldActionUserGroup) {
+                            alert("There is already a security rule with the type '" + type + "' and value '" + entityFieldActionUserGroup + "'!")
+                            return;
+                        }
+                    }
+                    var newItem = {
+                        id: new Date().getTime(),
+                        type: type,
+                        value: entityFieldActionUserGroup
+                    }
+                    dataView.addRowAt(securityRulesGridObject, newItem, securityRulesGridSelectedRowIndex + 1, null)
+                }
+
+                self.securityRulesGridMetadata = {
+                    title: 'Security Rules',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+
+                    controlButtons: [
+                        {
+                            name: 'Add Rule',
+                            class: 'width-120px',
+                            icon: 'add-circle-outline',
+                            fnc: addNewRule.bind(self)
+                        }, 'delete'],
+                    type: 'grid',
+                    width: '700px',
+                    height: '400px',
+                    leaveSpaceForNewRows: false,
+                    refresh: false,
+                    parent: {
+                        field: 'securityRules',
+                        node: 'securityRulesGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.securityRulesGridData = self.data.securityRules;
+
+
+                /**
+                 * User Groups Tree-Grid
+                 */
+                self.userGroupsTreeGridColumns = [
+                    {
+                        id: "groupUserName",
+                        name: "Group User Name",
+                        field: "groupUserName",
+                        width: 250,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Dynamic,
+                        $$editable: function (item, column) {
+                            return item.indent == 0;
+                        }
+                    }
+                ];
+                self.userGroupsTreeGridMetadata = {
+                    title: 'User Groups',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: true,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: [
+                        {
+                            name: 'Adjust',
+                            class: 'width-100px',
+                            icon: 'image:adjust',
+                            fnc: function () {
+                                self.$.adjustGroups.toggle();
+                            }
+                        },
+                        'delete', 'up', 'down'],
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '3',
+                    width: '280px',
+                    height: '400px',
+                    leaveSpaceForNewRows: true,
+                    refresh: false,
+                    parent: {
+                        field: 'userGroups',
+                        node: 'userGroupsTreeGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.userGroupsTreeGridData = self.data.userGroups;
+
+
+                /**
+                 * Users Tree-Grid
+                 */
+                function FullnameFormatter(row, cell, value, columnDef, dataContext) {
+                    return dataContext.firstName + " " + dataContext.lastName;
+                }
+
+                self.usersTreeGridColumns = [
+                    {
+                        id: "login",
+                        name: "Username",
+                        field: "login",
+                        width: 200,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Text
+                    },
+                    {
+                        id: "fullName",
+                        name: "Full Name",
+                        field: "",
+                        width: 250,
+                        editor: Slick.Editors.Text,
+                        formatter: FullnameFormatter
+                    }
+                ];
+
+                self.usersTreeGridMetadata = {
+                    title: 'Users',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: false,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: null,
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '3',
+                    width: '350px',
+                    height: '400px',
+                    leaveSpaceForNewRows: true,
+                    refresh: false,
+                    parent: {
+                        field: 'users',
+                        node: 'usersTreeGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.usersTreeGridData = self.users;
+
+
+                self.users4GroupTreeGridColumns = [
+                    {
+                        id: "login",
+                        name: "Username",
+                        field: "login",
+                        width: 200,
+                        formatter: "NodeColumnFormatter",
+                        editor: Slick.Editors.Text
+                    },
+                    {
+                        id: "fullName",
+                        name: "Full Name",
+                        field: "",
+                        width: 250,
+                        editor: Slick.Editors.Text,
+                        formatter: FullnameFormatter
+                    }
+                ];
+
+                var addNewGroup = function () {
+                    /**
+                     * get the selected items in the users table
+                     * fire an AddNewGroupEvent event to be caught by the respective listener to do the remaining part of the logic
+                     **/
+                    var dataView = this.gridObject.getData();
+                    var selectedUserIndexes = this.gridObject.getSelectedRows();
+                    if (selectedUserIndexes == null || selectedUserIndexes[0] == null) {
+                        alert("Please select at least an user to be added to the new group");
+                        return;
+                    }
+                    var usernames = [];
+                    for (var i = 0; i < selectedUserIndexes.length; i++) {
+                        var selectedUserIndex = selectedUserIndexes[i];
+                        var item = dataView.getItemByIdx(selectedUserIndex);
+                        usernames.push(item.login);
+                    }
+                    /**
+                     * create a new group line as the parent
+                     * for each selected user, create a child under the group line
+                     * insert the new group line above the selected line in the table
+                     * if the table is empty, or nothing is selected in the group table, put it at the beginning
+                     **/
+                    var groupItem = {
+                        id: new Date().getTime() + "_0",
+                        groupUserName: 'New Group',
+                        parent: null,
+                        indent: 0
+                    };
+                    groupItem.$children = [];
+                    for (var i = 0; i < usernames.length; i++) {
+                        var username = usernames[i];
+                        groupItem.$children.push({
+                            id: new Date().getTime() + "_" + (i + 1),
+                            groupUserName: username
+                        });
+                    }
+                    var userGroupsTreeGridObject = self.getGridObject("userGroupsTreeGrid");
+                    var dataView = userGroupsTreeGridObject.getData();
+                    var firstSelectedRowIndex = 0;
+                    if (self.userGroupsTreeGridMetadata.selection
+                            && self.userGroupsTreeGridMetadata.selection.rows
+                            && self.userGroupsTreeGridMetadata.selection.rows.length > 0) {
+                        firstSelectedRowIndex = self.userGroupsTreeGridMetadata.selection.rows[0];
+                    }
+                    /**
+                     * check what is the indent of the selected item.. we are just interested in items with indent 0
+                     * if an item is level 1, find its parent and use that index instead
+                     **/
+                    var firstSelectedRow = dataView.getItemByIdx(firstSelectedRowIndex);
+                    if (firstSelectedRow != null && firstSelectedRow.indent != 0) {
+                        var firstSelectedRowItem = dataView.getRowBy(firstSelectedRowIndex, -1, 1, 0, null);
+                        firstSelectedRowIndex = dataView.getIdxById(firstSelectedRowItem.id);
+                    }
+                    dataView.addRowWithChildrenAt(userGroupsTreeGridObject, groupItem, firstSelectedRowIndex, null);
+                }
+
+                var assignToGroup = function () {
+                    /**
+                     * get the selected items in the users table
+                     * fire an AssignToGroupEvent event to be caught by the respective listener to do the remaining part of the logic
+                     **/
+                    var dataView = this.gridObject.getData();
+                    var selectedUserIndexes = this.gridObject.getSelectedRows();
+                    if (selectedUserIndexes == null || selectedUserIndexes[0] == null) {
+                        alert("Please select at least an user to be assigned to group");
+                        return;
+                    }
+                    var usernames = [];
+                    for (var i = 0; i < selectedUserIndexes.length; i++) {
+                        var selectedUserIndex = selectedUserIndexes[i];
+                        var item = dataView.getItemByIdx(selectedUserIndex);
+                        usernames.push(item.login);
+                    }
+                    /**
+                     * get the selected group and validate that something is selected
+                     **/
+                    var userGroupsTreeGridObject = self.getGridObject("userGroupsTreeGrid");
+                    var selectedRowIndex = null;
+                    if (self.userGroupsTreeGridMetadata.selection
+                            && self.userGroupsTreeGridMetadata.selection.rows
+                            && self.userGroupsTreeGridMetadata.selection.rows.length > 0) {
+                        selectedRowIndex = self.userGroupsTreeGridMetadata.selection.rows[0];
+                    }
+                    if (selectedRowIndex == null) {
+                        alert("Select first a user-group row to which the selected user(s) should be added");
+                        return;
+                    }
+                    /**
+                     * if the selected row is not a group but a user, find the respective parent, otherwise it is the parent itself
+                     **/
+                    var dataView = userGroupsTreeGridObject.getData();
+                    var selectedRow = dataView.getItemByIdx(selectedRowIndex);
+                    var parentRowIndex = selectedRowIndex;
+                    if (selectedRow.indent != 0) {
+                        var parentRowItem = dataView.getRowBy(selectedRowIndex, -1, 1, 0, null);
+                        parentRowIndex = dataView.getIdxById(parentRowItem.id);
+                    }
+                    var childUsers = dataView.getChildren(parentRowIndex).items;
+                    var existingChildUsernames = [];
+                    for (var i = 0; i < childUsers.length; i++) {
+                        var childUser = childUsers[i];
+                        existingChildUsernames.push(childUser.groupUserName)
+                    }
+                    /**
+                     * iterate over the children of the item and add the new items just when they do not already exists in that group
+                     **/
+                    for (var i = 0; i < usernames.length; i++) {
+                        var username = usernames[i];
+                        if ($.inArray(username, existingChildUsernames) != -1) {
+                            continue;
+                        }
+                        var item = {
+                            id: new Date().getTime() + "_" + (i + 1),
+                            groupUserName: username,
+                            parent: parentRowIndex,
+                            indent: 1
+                        }
+                        dataView.addRowAt(userGroupsTreeGridObject, item, selectedRowIndex + 1, null)
+                    }
+                }
+
+                self.users4GroupTreeGridMetadata = {
+                    title: 'Users',
+                    enableButtonClickListeners: true,
+                    enableCellNavigation: true,
+                    enableColumnReorder: false,
+                    editable: false,
+                    enableAddRow: true,
+                    asyncEditorLoading: false,
+                    autoEdit: false,
+                    controlButtons: [
+                        {
+                            name: 'New Group',
+                            class: 'width-140px',
+                            icon: 'add-circle',
+                            fnc: addNewGroup.bind(self)
+                        },
+                        {
+                            name: 'To Group',
+                            class: 'width-130px',
+                            icon: 'chevron-left',
+                            fnc: assignToGroup.bind(self)
+                        }
+                    ],
+                    type: 'tree-grid',
+                    treeGridMaxDepth: '3',
+                    width: '350px',
+                    height: '400px',
+                    leaveSpaceForNewRows: true,
+                    refresh: false,
+                    parent: {
+                        field: 'users',
+                        node: 'users4GroupTreeGrid',
+                        parentNode: null,
+                        parentId: null
+                    }
+                };
+                self.users4GroupTreeGridData = self.users;
+
+
+                // there is a problem with the ready, it is not really readay
+                // for this reason, i use timeout as a workaround
+                setTimeout(function () {
+                    /**
+                     * Row selection listeners
+                     **/
+
+                    self.$.modelGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        /**
+                         * after the selections are changed, reset the related grids
+                         */
+                        self.resetRelatedObjects(e);
+                        self.updateHistory();
+                        // adjust the modelFields grid editors
+                        var rowIndex = e.detail.rows[0];
+                        var gridObject = self.getGridObject("modelGrid");
+                        var dataView = gridObject.getData();
+                        var item = dataView.getItemByIdx(rowIndex);
+                        adjustModelFieldsEditors(item);
+                    })
+
+                    self.$.buttonWorkflowGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        /**
+                         * after the selections are changed, reset the related grids
+                         */
+                        self.resetRelatedObjects(e);
+                        self.updateHistory();
+                    })
+
+                    self.$.buttonWorkflowTransitionTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.viewJoinsGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.modelFieldsGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        /**
+                         * after the selections are changed, reset the related grids
+                         */
+                        self.resetRelatedObjects(e);
+                        self.updateHistory();
+                    })
+
+                    self.$.fieldPropertiesGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.modelConstraintsGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.leftMenuTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.modelActionsTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.entityFieldsTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.securityRulesGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.userGroupsTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.usersTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    self.$.users4GroupTreeGrid.addEventListener('onSelectedRowIdsChanged', function (e) {
+                        self.updateHistory();
+                    })
+
+                    /**
+                     * Add listener for addition or deletion on the modelFieldsGrid and buttonWorkflowGrid
+                     **/
+                    self.$.modelGrid.addEventListener('onAddEditButtonClick', function (e) {
+                        self.updateModelActionsGrid();
+                        self.updateModelFieldsGrid();
+                    })
+                    self.$.modelGrid.addEventListener('onDeleteButtonClick', function (e) {
+                        self.updateModelActionsGrid();
+                        self.updateModelFieldsGrid();
+                    })
+                    self.$.buttonWorkflowGrid.addEventListener('onAddEditButtonClick', function (e) {
+                        self.updateModelActionsGrid();
+                    })
+                    self.$.buttonWorkflowGrid.addEventListener('onDeleteButtonClick', function (e) {
+                        self.updateModelActionsGrid();
+                    })
+                    self.$.modelFieldsGrid.addEventListener('onAddEditButtonClick', function (e) {
+                        self.updateModelFieldsGrid();
+                    })
+                    self.$.modelFieldsGrid.addEventListener('onDeleteButtonClick', function (e) {
+                        self.updateModelFieldsGrid();
+                    })
+
+                    for (var i = 0; i < self.gridObjects.length; i++) {
+                        var gridObject = self.gridObjects[i];
+                        gridObject.resizeCanvas();
+                    }
+
+                }, 10);
+
+            },
+
+
+            storeData: function () {
+                var dataAsJson = JSON.stringify(this.data);
+                $$.execute('entity-designer-save-data', [dataAsJson])
+                    .then(function (response) {
+                        console.debug(response);
+                    });
+            },
+
+            executeSequelJS: function () {
+                var dataAsJson = JSON.stringify(this.data);
+                $$.execute('execute_sequeljs', [dataAsJson])
+                    .then(function (response) {
+                        console.debug(response);
+                    });
+            },
+
+            reloadLibraries: function () {
+                $$.execute('load_base_script_engine', null)
+                    .then(function (response) {
+                        console.debug(response);
+                    });
+            },
+
+
+            loadData: function () {
+                var self = this;
+                $$.execute('entity-designer-load-data', [])
+                    .then(function (response) {
+                        var responseData = response;
+                        var designData = JSON.parse(responseData.designData);
+                        if (designData != null) {
+                            if (designData.models != null) {
+                                self.data.models.push.apply(self.data.models, designData.models);
+                                self.updateModelActionsGrid();
+                                self.updateModelFieldsGrid();
+                            }
+                            if (designData.userGroups != null) {
+                                self.data.userGroups.push.apply(self.data.userGroups, designData.userGroups);
+                                self.set("userGroupsTreeGridMetadata.refresh", true);
+                            }
+                            if (designData.securityRules != null) {
+                                self.data.securityRules.push.apply(self.data.securityRules, designData.securityRules);
+                                self.set("securityRulesGridMetadata.refresh", true);
+                            }
+                            self.set("data.selectedTab", designData.selectedTab || 0);
+                            self.set("data.selectedEntityTab", designData.selectedEntityTab || 0);
+                            self.set("data.selectedUserGroupTab", designData.selectedUserGroupTab || 0);
+
+                            if (designData.bookmarks != null) {
+                                self.data.bookmarks.push.apply(self.data.bookmarks, designData.bookmarks);
+                            }
+                            if (designData.leftMenuTreeGridData != null) {
+                                self.data.leftMenuTreeGridData.push.apply(self.data.leftMenuTreeGridData, designData.leftMenuTreeGridData);
+                                self.set("leftMenuTreeGridMetadata.refresh", true);
+                            }
+                        }
+                        /**
+                         * refresh the entity-view grid
+                         */
+                        self.set("modelGridMetadata.refresh", true);
+
+                        var users = responseData.users;
+                        if (users != null) {
+                            self.users.push.apply(self.users, users);
+                        }
+                        /**
+                         * refresh the users grid
+                         */
+                        self.set("usersTreeGridMetadata.refresh", true);
+                        self.set("users4GroupTreeGridMetadata.refresh", true);
+                    });
+
+            },
+
+
+            sendBookmarks: function (e) {
+                if (this.data.bookmarks != null && this.data.bookmarks.length > 0) {
+                    this.fire('iron-signal', {name: 'receive-bookmarks', data: this.data.bookmarks});
+                }
+            },
+
+
+            updateModelActionsGrid: function () {
+                var index = 0;
+                this.splice("modelActions", 0, this.modelActions.length)
+                for (var i = 0; i < this.data.models.length; i++) {
+                    var model = this.data.models[i];
+                    var parentIndex = index++;
+                    this.push("modelActions", {
+                        id: model.id,
+                        name: model.name,
+                        isView: model.isView,
+                        parent: null,
+                        indent: 0
+                    });
+                    var buttonsWorkflows = model['buttonsWorkflows']
+                    if (buttonsWorkflows == null) {
+                        continue;
+                    }
+                    for (var j = 0; j < buttonsWorkflows.length; j++) {
+                        var buttonsWorkflow = buttonsWorkflows[j];
+                        this.push("modelActions", {
+                            id: model.id + "_" + buttonsWorkflow.id,
+                            name: buttonsWorkflow.name,
+                            parent: parentIndex,
+                            indent: 1
+                        })
+                        index++;
+                    }
+                }
+                this.set("modelActionsTreeGridMetadata.refresh", true);
+            },
+
+            updateModelFieldsGrid: function () {
+                var index = 0;
+                this.splice("modelFields", 0, this.modelFields.length)
+                for (var i = 0; i < this.data.models.length; i++) {
+                    var model = this.data.models[i];
+                    var parentIndex = index++;
+                    this.push("modelFields", {
+                        id: model.id,
+                        name: model.name,
+                        isView: model.isView,
+                        parent: null,
+                        indent: 0
+                    })
+                    var fields = model['fields'];
+                    if (fields == null) {
+                        continue;
+                    }
+                    for (var j = 0; j < fields.length; j++) {
+                        var field = fields[j];
+                        this.push("modelFields", {
+                            id: model.id + "_" + field.id,
+                            name: field.field,
+                            parent: parentIndex,
+                            indent: 1
+                        })
+                        index++;
+                    }
+                }
+                this.set("entityFieldsTreeGridMetadata.refresh", true);
+            },
+
+
+            applyChanges: function () {
+                $$.execute('applyDBChanges', [false])
+                    .then(function (response) {
+                        console.debug(response);
+                    });
+            },
+
+
+            selectGridIdFromHistory: function (history, grid) {
+                var id = history[grid];
+                var gridObject = this.getGridObject(grid);
+                var dataView = gridObject.getData();
+                var rowIndex = dataView.getRowById(id);
+                gridObject.setSelectedRows([rowIndex])
+            },
+
+
+            getSelectedItem: function (grid) {
+                var gridMetadata = grid + "Metadata";
+                if (this[gridMetadata].selection != null
+                        && this[gridMetadata].selection.rows != null
+                        && this[gridMetadata].selection.rows.length > 0) {
+                    var rowIndex = this[gridMetadata].selection.rows[0];
+                    var gridObject = this.getGridObject(grid);
+                    var dataView = gridObject.getData();
+                    return dataView.getItemByIdx(rowIndex);
+                }
+                return null;
+            },
+
+            setGridIdToHistory: function (history, grid) {
+                var selectedItem = this.getSelectedItem(grid);
+                if (selectedItem != null) {
+                    history[grid] = selectedItem.id;
+                }
+            },
+
+            /**
+             * Note that if the selectedTab is passed, the logic is a little different
+             **/
+            updateHistory: function (selectedTab, selectedEntityTab, selectedUserGroupTab) {
+                /**
+                 * wait till the page fully loaded, then start capturing history
+                 */
+                if (this.loadingFinished != true) {
+                    return;
+                }
+                /**
+                 * if going back and forth in the history has caused a new selection, then just return
+                 */
+                if (this.ignoreHistory == true) {
+                    return;
+                }
+                var id = this.historyList.length;
+                var history = {id: id}
+                /**
+                 * if this method is called by the selected tab observers
+                 */
+                if (selectedTab != null && selectedEntityTab != null && selectedUserGroupTab != null) {
+                    history.selectedTab = selectedTab;
+                    history.selectedEntityTab = selectedEntityTab;
+                    history.selectedUserGroupTab = selectedUserGroupTab;
+                } else {
+                    history.selectedTab = this.data.selectedTab;
+                    history.selectedEntityTab = this.data.selectedEntityTab;
+                    history.selectedUserGroupTab = this.data.selectedUserGroupTab;
+
+                    this.setGridIdToHistory(history, "modelGrid");
+                    this.setGridIdToHistory(history, "buttonWorkflowGrid");
+                    this.setGridIdToHistory(history, "buttonWorkflowTransitionTreeGrid");
+                    this.setGridIdToHistory(history, "viewJoinsGrid");
+                    this.setGridIdToHistory(history, "modelFieldsGrid");
+                    this.setGridIdToHistory(history, "fieldPropertiesGrid");
+                    this.setGridIdToHistory(history, "modelConstraintsGrid");
+
+                    this.setGridIdToHistory(history, "leftMenuTreeGrid");
+                    this.setGridIdToHistory(history, "modelActionsTreeGrid");
+                    this.setGridIdToHistory(history, "entityFieldsTreeGrid");
+
+                    this.setGridIdToHistory(history, "securityRulesGrid");
+                    this.setGridIdToHistory(history, "userGroupsTreeGrid");
+                    this.setGridIdToHistory(history, "usersTreeGrid");
+                    this.setGridIdToHistory(history, "users4GroupTreeGrid");
+                }
+
+                /**
+                 * after going back in the history, if users start to work (selecting something)
+                 * then clear the history after that point in the history
+                 */
+                if (this.currentHistoryIndex < this.historyList.length - 1) {
+                    this.historyList = this.historyList.slice(0, this.currentHistoryIndex + 1);
+                }
+
+                /**
+                 * if the history limit has been reached, then clear the history from the beginning
+                 * use the history-step variable for clearing the history from the beginning
+                 */
+                if (this.historyList.length > this.historyMaxLength) {
+                    this.historyList = this.historyList.slice(this.historyOverflowClearCount);
+                    this.currentHistoryIndex -= this.historyOverflowClearCount;
+                }
+
+                this.historyList.push(history);
+                this.currentHistoryIndex++;
+            },
+
+            backwardHistory: function () {
+                this.ignoreHistory = true;
+                if (this.historyList.length == 0 || this.currentHistoryIndex <= 0) {
+                    console.log("No history entry before...")
+                    this.ignoreHistory = false;
+                    return;
+                }
+                this.currentHistoryIndex--;
+                var currentHistory = this.historyList[this.currentHistoryIndex];
+                if (currentHistory.selectedTab != null) {
+                    this.set("data.selectedTab", currentHistory.selectedTab);
+                }
+                if (currentHistory.selectedEntityTab != null) {
+                    this.set("data.selectedEntityTab", currentHistory.selectedEntityTab);
+                }
+                if (currentHistory.selectedUserGroupTab != null) {
+                    this.set("data.selectedUserGroupTab", currentHistory.selectedUserGroupTab);
+                }
+
+                this.selectGridIdFromHistory(currentHistory, "modelGrid");
+                this.selectGridIdFromHistory(currentHistory, "buttonWorkflowGrid");
+                this.selectGridIdFromHistory(currentHistory, "buttonWorkflowTransitionTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "viewJoinsGrid");
+                this.selectGridIdFromHistory(currentHistory, "modelFieldsGrid");
+                this.selectGridIdFromHistory(currentHistory, "fieldPropertiesGrid");
+                this.selectGridIdFromHistory(currentHistory, "modelConstraintsGrid");
+
+                this.selectGridIdFromHistory(currentHistory, "leftMenuTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "modelActionsTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "entityFieldsTreeGrid");
+
+                this.selectGridIdFromHistory(currentHistory, "securityRulesGrid");
+                this.selectGridIdFromHistory(currentHistory, "userGroupsTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "usersTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "users4GroupTreeGrid");
+
+                this.ignoreHistory = false;
+            },
+
+
+            forwardHistory: function () {
+                this.ignoreHistory = true;
+                if (this.currentHistoryIndex == this.historyList.length - 1) {
+                    console.log("No history entry after...");
+                    this.ignoreHistory = false;
+                    return;
+                }
+                this.currentHistoryIndex++;
+                var currentHistory = this.historyList[this.currentHistoryIndex];
+                if (currentHistory.selectedTab != null) {
+                    this.set("data.selectedTab", currentHistory.selectedTab);
+                }
+                if (currentHistory.selectedEntityTab != null) {
+                    this.set("data.selectedEntityTab", currentHistory.selectedEntityTab);
+                }
+                if (currentHistory.selectedUserGroupTab != null) {
+                    this.set("data.selectedUserGroupTab", currentHistory.selectedUserGroupTab);
+                }
+
+                this.selectGridIdFromHistory(currentHistory, "modelGrid");
+                this.selectGridIdFromHistory(currentHistory, "buttonWorkflowGrid");
+                this.selectGridIdFromHistory(currentHistory, "buttonWorkflowTransitionTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "viewJoinsGrid");
+                this.selectGridIdFromHistory(currentHistory, "modelFieldsGrid");
+                this.selectGridIdFromHistory(currentHistory, "fieldPropertiesGrid");
+                this.selectGridIdFromHistory(currentHistory, "modelConstraintsGrid");
+
+                this.selectGridIdFromHistory(currentHistory, "leftMenuTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "modelActionsTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "entityFieldsTreeGrid");
+
+                this.selectGridIdFromHistory(currentHistory, "securityRulesGrid");
+                this.selectGridIdFromHistory(currentHistory, "userGroupsTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "usersTreeGrid");
+                this.selectGridIdFromHistory(currentHistory, "users4GroupTreeGrid");
+
+                this.ignoreHistory = false;
+            },
+
+
+            getFieldArray: function (fieldName) {
+                if (this.currentModel) {
+                    return this.currentModel[fieldName];
+                } else {
+                    return [];
+                }
+            },
+
+
+            getModelById: function (id) {
+                for (var i = 0; i < this.data.models.length; i++) {
+                    var model = this.data.models[i];
+                    if (model.id == id) {
+                        return model;
+                    }
+                }
+                return null;
+            },
+
+
+            getModelByName: function (name) {
+                for (var i = 0; i < this.data.models.length; i++) {
+                    var model = this.data.models[i];
+                    if (model.name == name) {
+                        return model;
+                    }
+                }
+                return null;
+            },
+
+            getFieldById: function (id) {
+                if (!this.currentModel) {
+                    return;
+                }
+                for (var i = 0; i < this.currentModel.fields.length; i++) {
+                    var field = this.currentModel.fields[i];
+                    if (field.id == id) {
+                        return field;
+                    }
+                }
+                return null;
+            },
+
+
+                getModelFieldNames: function (model, justRelationshipField) {
+                    var resultFieldNames = [];
+                    for (var i = 0; i < model.fields.length; i++) {
+                        var field = model.fields[i];
+                        if(!justRelationshipField ||
+                                ($.inArray(field.props.type, this.primitiveTypes) == -1
+                                        && $.inArray(field.props.type, this.specialTypes) == -1 ))
+                            resultFieldNames.push(field.name);
+                    }
+                    return resultFieldNames;
+                },
+
+
+                getFieldByName: function (model, fieldName) {
+                    for (var i = 0; i < model.fields.length; i++) {
+                        var field = model.fields[i];
+                        if (field.name == fieldName) {
+                            return field;
+                        }
+                    }
+                    return null;
+                }
+                ,
+
+
+            getButtonWorkflowById: function (id) {
+                if (!this.currentModel) {
+                    return;
+                }
+                for (var i = 0; i < this.currentModel.buttonsWorkflows.length; i++) {
+                    var buttonsWorkflow = this.currentModel.buttonsWorkflows[i];
+                    if (buttonsWorkflow.id == id) {
+                        return buttonsWorkflow;
+                    }
+                }
+                return null;
+            },
+
+
+            getGridObject: function (gridNode) {
+                for (var i = 0; i < this.gridObjects.length; i++) {
+                    var gridObject = this.gridObjects[i];
+                    if (gridObject.getOptions().parent.node == gridNode) {
+                        return gridObject;
+                    }
+                }
+                return null;
+            },
+
+
+            resetRelatedObjects: function (e) {
+                this.resetDependentGrids(e.detail.parentNode);
+                for (var i = 0; i < this.gridObjects.length; i++) {
+                    var gridObject = this.gridObjects[i];
+                    var gridOption = gridObject.getOptions();
+                    var parentNode = e.detail.parentNode;
+                    if (!gridOption.parent) {
+                        continue;
+                    }
+                    if (parentNode == gridOption.parent.parentNode) {
+                        var selectedIds = e.detail.ids;
+                        var node = gridOption.parent.node;
+                        var field = gridOption.parent.field;
+                        if (selectedIds == null || selectedIds.length == 0 || selectedIds.length > 1) {
+                            this.set(node + 'Metadata.parent.parentId', null);
+                        } else {
+                            var selectedId = selectedIds[0];
+                            // set the parentId of the respective children
+                            this.set(node + 'Metadata.parent.parentId', selectedId);
+                            // fill the respective children
+                            if (parentNode == 'modelGrid') {
+                                this.currentModel = this.getModelById(selectedId);
+                                gridObject.getData().setItems(this.currentModel[field]);
+                            } else if (parentNode == 'modelFieldsGrid') {
+                                this.currentField = this.getFieldById(selectedId);
+                                gridObject.getData().setItems(this.getFieldPropertyRows(this.currentField));
+                            } else if (parentNode == 'buttonWorkflowGrid') {
+                                this.currentButtonWorkflow = this.getButtonWorkflowById(selectedId);
+                                gridObject.getData().setItems(this.currentButtonWorkflow[field]);
+                            }
+
+                            gridObject.invalidate();
+
+                        }
+                    }
+                }
+            },
+
+
+            /**
+             * empty the given grid and all of its children
+             */
+            resetDependentGrids: function (node) {
+                for (var i = 0; i < this.gridObjects.length; i++) {
+                    var gridObject = this.gridObjects[i];
+                    var gridOption = gridObject.getOptions();
+                    var parentNode = gridOption.parent.parentNode;
+                    var currentNode = gridOption.parent.node;
+                    if (parentNode == node) {
+                        if (currentNode == 'fieldPropertiesGrid') {
+                            gridObject.getData().setItems(this.getFieldPropertyRows(null));
+                        } else {
+                            gridObject.getData().setItems([]);
+                        }
+                        gridObject.setSelectedRows([]);
+                        gridObject.setActiveCell(-1, 0);
+                        gridObject.invalidate();
+                        this.resetDependentGrids(currentNode);
+                    }
+                }
+            },
+
+
+            getUserTypes: function () {
+                var results = [];
+                var modelGridObject = this.getGridObject("modelGrid");
+                var dataView = modelGridObject.getData();
+                var items = dataView.getItems();
+                for (var i = 0; i < items.length; i++) {
+                    var item = items[i];
+                    // if it is not a view
+                    if (G.isNullEmpty(item.viewModel)) {
+                        results.push(item.name);
+                    }
+                }
+                return results;
+            },
+
+
+            hasValue: function (value) {
+                return value != null && value.trim() != '';
+            },
+
+            propsValue: function (property) {
+                var gridObject = this.getGridObject("fieldPropertiesGrid");
+                var dataView = gridObject.getData();
+                var items = dataView.getItems();
+                for (var i = 0; i < items.length; i++) {
+                    var item = items[i];
+                    if (item.property == property) {
+                        return item.value;
+                    }
+                }
+            },
+
+
+            retrieveAllPrimitiveAndSpecialFields: function (modelId) {
+                var fieldNames = [];
+                for (var i = 0; i < this.data.models.length; i++) {
+                    var model = this.data.models[i];
+                    if (model.id == modelId) {
+                        for (var j = 0; j < model.fields.length; j++) {
+                            var field = model.fields[j];
+                            if ($.inArray(field.props.type, this.primitiveTypes) !== -1
+                                    || $.inArray(field.props.type, this.specialTypes) !== -1) {
+                                fieldNames.push(field.name);
+                            }
+                        }
+                    }
+                }
+                return fieldNames;
+            },
+
+
+            isDisabled: function (item, column) {
+
+                if (item.property == 'relationshipType') {
+                    // For special types, no relationships are allowed
+                    var type = this.propsValue('type');
+                    if (type == null || type.trim() == ''
+                            || $.inArray(type, this.specialTypes) !== -1) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                else if (item.property == 'eager') {
+                    var type = this.propsValue('type');
+                    var relationshipType = this.propsValue('relationshipType');
+                    if (this.hasValue(type) && this.hasValue(relationshipType)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'referencedBy') {
+                    var type = this.propsValue('type');
+                    var relationshipType = this.propsValue('relationshipType');
+                    if (this.hasValue(relationshipType)
+                            && relationshipType.toLowerCase() != 'set'
+                            && this.hasValue(type)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'cascade') {
+                    var type = this.propsValue('type');
+                    var relationshipType = this.propsValue('relationshipType');
+                    if (this.hasValue(relationshipType)
+                            && relationshipType.toLowerCase() != 'set'
+                            && this.hasValue(type)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'orphanRemoval') {
+                    var type = this.propsValue('type');
+                    var relationshipType = this.propsValue('relationshipType');
+                    if (this.hasValue(relationshipType)
+                            && (relationshipType.toLowerCase() == 'onetomany' ||
+                            relationshipType.toLowerCase() == 'onetomany')) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+
+                else if (item.property == 'fetchMode') {
+                    var relationshipType = this.propsValue('relationshipType');
+                    if (this.hasValue(relationshipType)
+                            && relationshipType.toLowerCase() == 'onetomany') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'mappedBy') {
+                    var relationshipType = this.propsValue('relationshipType');
+                    if (relationshipType.toLowerCase() == 'manytomany'
+                            || relationshipType.toLowerCase() == 'onetoone'
+                            || relationshipType.toLowerCase() == 'onetomany'
+                    ) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'batchSize') {
+                    var fetchMode = this.propsValue('fetchMode');
+                    if (fetchMode.toLowerCase() == 'select') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'mapKey') {
+                    var relationshipType = this.propsValue('relationshipType');
+                    var orderBy = this.propsValue('orderBy');
+                    if (this.hasValue(relationshipType)
+                            && relationshipType.toLowerCase() == 'onetomany'
+                            && !this.hasValue(orderBy)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'orderBy') {
+                    var relationshipType = this.propsValue('relationshipType');
+                    var mapKey = this.propsValue('mapKey');
+                    if (relationshipType.toLowerCase() == 'onetomany'
+                            && !this.hasValue(mapKey)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'generator') {
+                    var type = this.propsValue('type');
+                    if (type.toLowerCase() == 'id') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'maxLow' || item.property == 'primaryKeyValue') {
+                    var type = this.propsValue('type');
+                    var generator = this.propsValue('generator');
+                    if (type.toLowerCase() != 'id') {
+                        return true;
+                    } else if (generator.toLowerCase() == 'hilo') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                else if (item.property == 'generatorName') {
+                    var type = this.propsValue('type');
+                    var generator = this.propsValue('generator');
+                    if (type.toLowerCase() != 'id') {
+                        return true;
+                    } else if (generator.toLowerCase() == 'custom') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+
+
+            clearRelationshipFields: function (currentField) {
+                currentField.props.rel_type = '';
+                currentField.props.rel_mappedBy = '';
+                currentField.props.rel_referencedBy = '';
+                currentField.props.rel_cascade = '';
+                currentField.props.rel_orphanRemoval = '';
+                currentField.props.rel_orderBy = '';
+                currentField.props.rel_mapKey = '';
+                currentField.props.rel_eager = '';
+                currentField.props.rel_fetchMode = '';
+                currentField.props.rel_batchSize = '';
+                var gridObject = this.getGridObject("fieldPropertiesGrid");
+                gridObject.getData().setItems(this.getFieldPropertyRows(currentField));
+                gridObject.invalidate();
+            },
+
+
+            areRelationshipTypesMatch: function (relationshipType1, relationshipType2) {
+                if (!this.hasValue(relationshipType1) || !this.hasValue(relationshipType2)) {
+                    return false;
+                } else if (relationshipType1.toLowerCase() == "manytomany" && relationshipType2.toLowerCase() == "manytomany") {
+                    return true;
+                } else if (relationshipType1.toLowerCase() == "onetomany" && relationshipType2.toLowerCase() == "manytoone") {
+                    return true;
+                } else if (relationshipType1.toLowerCase() == "manytoone" && relationshipType2.toLowerCase() == "onetomany") {
+                    return true;
+                } else if (relationshipType1.toLowerCase() == "onetoone" && relationshipType2.toLowerCase() == "onetoone") {
+                    return true;
+                } else {
+                    return false;
+                }
+            },
+
+
+            //todo/kn.. add the feature to jump to the related field.. can be a button at the top
+
+
+            getFieldPropertyRows: function (currentField) {
+                var self = this;
+                if (currentField != null) {
+                    props = currentField.props;
+                } else {
+                    props = {};
+                }
+                var rowNumber = 0;
+                var generalSectionRow = rowNumber;
+                var fieldPropertiesGridData = [];
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: null,
+                    indent: 0,
+                    property: "General",
+                    value: "",
+                    $editors: {value: "None"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber, parent: generalSectionRow, indent: 1, property: "type", value: props.type,
+                    $editors: {value: "Select"},
+                    $options: function (currentValue, newValue, args) {
+                        var results = [];
+                        var allTypes = [];
+                        allTypes = allTypes.concat(self.primitiveTypes);
+                        allTypes = allTypes.concat(self.specialTypes);
+                        var userTypes = self.getUserTypes();
+                        return allTypes.concat(userTypes != null ? userTypes : []);
+                    },
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.type = newValue;
+                        if ($.inArray(newValue, self.primitiveTypes) !== -1) {
+                            self.clearRelationshipFields(currentField);
+                        }
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: generalSectionRow,
+                    indent: 1,
+                    property: "nullable",
+                    value: props.nullable,
+                    $editors: {value: "Checkbox"},
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.nullable = newValue;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: generalSectionRow,
+                    indent: 1,
+                    property: "length",
+                    value: props.length,
+                    $editors: {value: "Float"},
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.length = newValue;
+                    }
+                };
+                var idSectionRow = rowNumber;
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: null,
+                    indent: 0,
+                    property: "ID",
+                    value: "",
+                    $editors: {value: "None"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: idSectionRow,
+                    indent: 1,
+                    property: "generator",
+                    value: props.id_generator,
+                    $editors: {value: "Select"},
+                    $options: ['hilo', 'auto', 'custom'],
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.id_generator = newValue;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: idSectionRow,
+                    indent: 1,
+                    property: "generatorName",
+                    value: props.id_generatorName,
+                    value: props.length,
+                    $editors: {value: "Text"},
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.id_generatorName = newValue;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: idSectionRow,
+                    indent: 1,
+                    property: "maxLow",
+                    value: props.id_maxLow,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.id_maxLow = newValue;
+                    },
+                    $editors: {value: "Integer"},
+                    toolTip: "Number of ids generated before fetching a new hi value"
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: idSectionRow,
+                    indent: 1,
+                    property: "primaryKeyValue",
+                    value: props.id_primaryKeyValue,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.id_primaryKeyValue = newValue;
+                    },
+                    //todo/kn.. see whether a select can be used
+                    $editors: {value: "Text"},
+                    toolTip: "primary_key_value"
+                };
+                var relationshipSectionRow = rowNumber;
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: null,
+                    indent: 0,
+                    property: "Relationship",
+                    value: "",
+                    $editors: {value: "None"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "relationshipType",
+                    value: props.rel_type,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_type = newValue;
+                        if (!self.hasValue(newValue)) {
+                            self.clearRelationshipFields(currentField);
+                        }
+                    },
+                    $editors: {value: "Select"},
+                    $options: ['', 'ManyToMany', 'OneToMany', 'ManyToOne', 'OneToOne', 'Set']
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "mappedBy",
+                    value: props.rel_mappedBy,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_mappedBy = newValue;
+                    },
+                    $editors: {value: "Select"},
+                    $options: function (currentValue, newValue, args) {
+                        var fieldNames = [];
+                        if (self.modelGridMetadata.selection == null || self.modelGridMetadata.selection.ids == null) {
+                            return fieldNames;
+                        }
+                        var currentModelId = self.modelGridMetadata.selection.ids[0];
+                        var dataView = self.getGridObject("modelGrid").getData();
+                        var currentModel = dataView.getItemById(currentModelId);
+                        for (var i = 0; i < self.data.models.length; i++) {
+                            var model = self.data.models[i];
+                            for (var j = 0; j < model.fields.length; j++) {
+                                var field = model.fields[j];
+                                if (model.name == props.type
+                                        && field.props.type == currentModel.name
+                                        && (currentModel.name != model.name || field.name != currentField.name)
+                                        && self.areRelationshipTypesMatch(field.props.rel_type, props.rel_type)
+                                        && $.inArray(props.rel_type.toLowerCase(), ['manytomany', 'onetomany', 'onetoone']) !== -1
+                                        && !self.hasValue(field.props.rel_mappedBy)
+                                ) {
+                                    /**
+                                     * if the the relationship-type on this field is many-to-many
+                                     * and the mapped-by field on the other side does not have any value
+                                     * then add the related field name to the mapped-by field on this side
+                                     */
+                                    fieldNames.push(field.name);
+                                }
+                            }
+                        }
+                        return fieldNames;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "referencedBy",
+                    value: props.rel_referencedBy,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_referencedBy = newValue;
+                    },
+                    $editors: {value: "Select"},
+                    $options: function (currentValue, newValue, args) {
+                        var fieldNames = [];
+                        if (self.modelGridMetadata.selection == null
+                                || self.modelGridMetadata.selection.ids == null
+                                || self.modelGridMetadata.selection.ids.length == 0) {
+                            return fieldNames;
+                        }
+                        var currentModelId = self.modelGridMetadata.selection.ids[0];
+                        var dataView = self.getGridObject("modelGrid").getData();
+                        var currentModel = dataView.getItemById(currentModelId);
+                        for (var i = 0; i < self.data.models.length; i++) {
+                            var model = self.data.models[i];
+                            for (var j = 0; j < model.fields.length; j++) {
+                                var field = model.fields[j];
+                                if (model.name == props.type
+                                        && field.props.type == currentModel.name
+                                        && (currentModel.name != model.name || field.name != currentField.name)
+                                        && self.areRelationshipTypesMatch(field.props.rel_type, props.rel_type)) {
+                                    fieldNames.push(field.name);
+                                }
+                            }
+                        }
+                        return fieldNames;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "cascade",
+                    value: props.rel_cascade,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_cascade = newValue;
+                    },
+                    $editors: {value: "Select"},
+                    $options: ['None', 'All', 'Persist', 'Merge', 'Remove', 'Refresh', 'Detach']
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "orphanRemoval",
+                    value: props.rel_orphanRemoval,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_orphanRemoval = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "orderBy",
+                    value: props.rel_orderBy,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_orderBy = newValue;
+                    },
+                    $editors: {value: "Select"},
+                    $options: function (currentValue, newValue, args) {
+                        var fieldNames = []
+                        if (self.modelGridMetadata.selection && self.modelGridMetadata.selection.ids) {
+                            var firstSelectedModelId = self.modelGridMetadata.selection.ids[0];
+                            fieldNames = self.retrieveAllPrimitiveAndSpecialFields(firstSelectedModelId);
+                        }
+                        return fieldNames;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "mapKey",
+                    value: props.rel_mapKey,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_mapKey = newValue;
+                    },
+                    $editors: {value: "Select"},
+                    $options: function (currentValue, newValue, args) {
+                        var fieldNames = []
+                        if (self.modelGridMetadata.selection && self.modelGridMetadata.selection.ids) {
+                            var firstSelectedModelId = self.modelGridMetadata.selection.ids[0];
+                            fieldNames = self.retrieveAllPrimitiveAndSpecialFields(firstSelectedModelId);
+                        }
+                        return fieldNames;
+                    }
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "eager",
+                    value: props.rel_eager,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_eager = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "fetchMode",
+                    value: props.rel_fetchMode,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_fetchMode = newValue;
+                    },
+                    $editors: {value: "Select"},
+                    $options: ['Select', 'SubSelect', 'Join']
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: relationshipSectionRow,
+                    indent: 1,
+                    property: "batchSize",
+                    value: props.rel_batchSize,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.rel_batchSize = newValue;
+                    },
+                    $editors: {value: "Integer"}
+                };
+                var uiSectionRow = rowNumber;
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: null,
+                    indent: 0,
+                    property: "UI",
+                    value: "",
+                    $editors: {value: "None"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: uiSectionRow,
+                    indent: 1,
+                    property: "table",
+                    value: props.ui_table,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.ui_table = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: uiSectionRow,
+                    indent: 1,
+                    property: "width",
+                    value: props.ui_width,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.ui_width = newValue;
+                    },
+                    $editors: {value: "Integer"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: uiSectionRow,
+                    indent: 1,
+                    property: "enableEdit",
+                    value: props.ui_enableEdit,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.ui_enableEdit = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: uiSectionRow,
+                    indent: 1,
+                    property: "preview",
+                    value: props.ui_preview,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.ui_preview = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                var searchSectionRow = rowNumber;
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: null,
+                    indent: 0,
+                    property: "Search",
+                    value: "",
+                    $editors: {value: "None"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: searchSectionRow,
+                    indent: 1,
+                    property: "active",
+                    value: props.search_active,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.search_active = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: searchSectionRow,
+                    indent: 1,
+                    property: "like",
+                    value: props.search_like,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.search_like = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                fieldPropertiesGridData[rowNumber++] = {
+                    id: rowNumber,
+                    parent: searchSectionRow,
+                    indent: 1,
+                    property: "range",
+                    value: props.search_range,
+                    $$postUpdate: function (currentValue, newValue, args) {
+                        props.search_range = newValue;
+                    },
+                    $editors: {value: "Checkbox"}
+                };
+                return fieldPropertiesGridData;
+            }
+
+        })
+        ;
+    </script>
+
+</dom-module>
+

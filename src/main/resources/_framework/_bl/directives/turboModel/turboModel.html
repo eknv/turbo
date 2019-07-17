@@ -1,0 +1,25 @@
+<button type="button" class="btn btn-primary" ng-click="add()"
+        ng-disabled="isReferring(parentType, parentRelationship.mappedBy)">
+    <span class="glyphicon glyphicon-plus">Add {{modelName}}</span>
+</button>
+<button type="button" class="btn btn-primary" ng-click="edit()">
+    <span class="glyphicon glyphicon-edit">Edit {{modelName}}</span>
+</button>
+
+<button type="button" class="btn btn-primary" ng-click="selectMethod(selected)" ng-if="selectMethod!=undefined">
+    <span class="glyphicon glyphicon-ok">Select</span>
+</button>
+
+<button type="button" class="btn btn-primary" ng-click="assignment.assignMethod(selected)"
+        ng-if="assignment!=undefined">
+    <span class="glyphicon glyphicon-ok">Assign</span>
+</button>
+
+<button type="button" class="btn btn-primary" ng-click="assignment.unassignMethod(selected)"
+        ng-if="assignment!=undefined">
+    <span class="glyphicon glyphicon-ok">Unassign</span>
+</button>
+
+<div ui-grid="gridoptions" ui-grid-pagination ui-grid-selection ui-grid-resize-columns
+     ui-grid-move-columns
+     ui-grid-edit ui-grid-pinning ui-grid-autoResize class="grid"></div>

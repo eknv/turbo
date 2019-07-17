@@ -1,0 +1,432 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../../bower_components/font-roboto/roboto.html">
+<link rel="import" href="../../../../bower_components/moment-element/moment-with-locales-import.html">
+<link rel="import" href="../../../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="date-range.html">
+
+<dom-module id="date-range-input">
+  <template>
+
+
+    <style is="custom-style">
+
+      :host {
+        display: inline-block;
+        padding-left: 5px;
+      }
+
+      .flex-wrap {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        width: 270px;
+      }
+
+      .flex-end-justified {
+        @apply(--layout-horizontal);
+        @apply(--layout-end-justified);
+      }
+
+      .flex-end-align {
+        @apply(--layout-horizontal);
+        @apply(--layout-end);
+      }
+
+      .iron-selected {
+        background-color: var(--google-blue-500);
+        color: white;
+        padding-right: 20px;
+      }
+
+      .datedialog {
+        margin: 0;
+        font-family: 'RobotoDraft', sans-serif;
+        height: 480px;
+        width: 586px;
+        padding: 0;
+        position: fixed;
+        z-index: 1000;
+      }
+
+      .datedialog .fullcontainer {
+        height: 445px;
+        width: 530px;
+        overflow: visible;
+      }
+
+      .active {
+        /*background-color: #00BCD4;*/
+      }
+
+      .datedialog .calendar {
+        border-right: 1px solid lightgray;
+        height: 425px;
+        width: 270px;
+      }
+
+      .datedialog .dateview {
+        background-color: #00BCD4;
+        color: #fff;
+        height: 150px;
+      }
+
+      .datedialog .days {
+        width: 20px;
+        min-width: 0;
+        margin: 0;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 12px;
+      }
+
+      .datedialog .monthday {
+        font-size: 58px;
+      }
+
+      .datedialog .weekday {
+        font-size: 13px;
+        height: 25px;
+        background-color: #0097a7;
+        font-weight: lighter;
+      }
+
+      .datedialog .core-selected {
+        background-color: #00BCD4;
+        color: #fff;
+      }
+
+      .datedialog .spacer {
+        width: 5px;
+      }
+
+      .outputview {
+        width: 240px;
+      }
+
+      .button {
+        width: 60px;
+        display: inline-block;
+        padding: 0;
+        border: 0;
+      }
+
+      .smallbutton .paper-button-1 {
+        min-width: 30px;
+        height: 30px;
+        width: 35px;
+        padding: 1px;
+        margin: 1px;
+      }
+
+      .container {
+        @apply(--layout-horizontal);
+        @apply(--layout-end);
+      }
+
+      paper-icon-button {
+        padding-left: 0;
+      }
+
+    </style>
+
+    <div class="container">
+      <paper-input-container always-float-label>
+        <label>{{name}} range</label>
+        <date-range class="paper-input-input" from-date="{{fromDate}}" from-date-string="{{fromDateString}}"
+                    to-date="{{toDate}}" to-date-string="{{toDateString}}"></date-range>
+      </paper-input-container>
+      <paper-icon-button suffix on-tap="clickEvent" icon="date-range" alt="select" title="select"></paper-icon-button>
+    </div>
+
+
+    <content></content>
+    <paper-dialog id="datedialog" class="datedialog" auto-fit-on-attach>
+      <div class="fullcontainer" class="fullbleed flex layout vertical">
+        <div class="calendarcontainer flex layout horizontal">
+
+          <div class="calendar layout vertical content">
+            <!-- Dateview -->
+            <div class="dateview layout vertical">
+              <div class="weekday layout horizontal center center-justified">
+                {{fromWeekDay}}
+              </div>
+              <div class="dateinformation flex layout vertical">
+                <div class="month layout horizontal center center-justified flex">
+                  {{fromMon}}
+                </div>
+                <div class="monthday layout horizontal center center-justified flex">
+                  {{fromMonthDay}}
+                </div>
+                <div class="year layout horizontal center center-justified flex">
+                  {{fromMonthYear}}
+                </div>
+              </div>
+            </div>
+            <!-- Calendar view -->
+            <div class="calview layout vertical flex">
+              <div class="monthpicker layout horizontal">
+                <div class="monthprev">
+                  <paper-icon-button icon="chevron-left" on-tap="fromPrev"></paper-icon-button>
+                </div>
+                <div class="currentmonth layout horizontal center center-justified flex">
+                  {{ fromDateViewMonthYear }}
+                </div>
+                <div class="monthnext">
+                  <paper-icon-button icon="chevron-right" on-tap="fromNext"></paper-icon-button>
+                </div>
+              </div>
+              <div class="dayhead smallbutton layout horizontal center">
+                <template is="dom-repeat" id="template_weekdays" items="{{weekdays}}">
+                  <paper-button class$="{{type}} {{ item.cl }}" label$="{{ item.label }}"
+                                data-value="{{ item.val }}">
+                    {{ item.val }}
+                  </paper-button>
+                </template>
+              </div>
+              <!--selectable=".active"-->
+              <iron-selector id="fromdays" selected="{{fromDateViewDate}}" selectedClass="iron-selected"
+                             class="alldays smallbutton container flex-wrap center center-justified"
+                             attr-for-selected="data">
+                <template is="dom-repeat" id="template_fromdays" items="{{fromDays}}">
+                  <paper-button class$="{{type}} {{item.cl}}" data="{{item.val}}" label$="{{item.label}}"> {{ item.label
+                    }}
+                  </paper-button>
+                </template>
+              </iron-selector>
+            </div>
+          </div>
+
+          <div class="calendar layout vertical">
+            <!-- Dateview -->
+            <div class="dateview layout vertical">
+              <div class="weekday layout horizontal center center-justified">
+                {{toWeekDay}}
+              </div>
+              <div class="dateinformation flex layout vertical">
+                <div class="month layout horizontal center center-justified flex">
+                  {{toMon}}
+                </div>
+                <div class="monthday layout horizontal center center-justified flex">
+                  {{toMonthDay}}
+                </div>
+                <div class="year layout horizontal center center-justified flex">
+                  {{toMonthYear}}
+                </div>
+              </div>
+            </div>
+            <!-- Calendar view -->
+            <div class="calview layout vertical flex">
+              <div class="monthpicker layout horizontal">
+                <div class="monthprev">
+                  <paper-icon-button icon="chevron-left" on-tap="toPrev"></paper-icon-button>
+                </div>
+                <div class="currentmonth layout horizontal center center-justified flex">
+                  {{toDateViewMonthYear}}
+                </div>
+                <div class="monthnext">
+                  <paper-icon-button icon="chevron-right" on-tap="toNext"></paper-icon-button>
+                </div>
+              </div>
+              <div class="dayhead container flex-wrap smallbutton">
+                <template is="dom-repeat" id="weekdays" items="{{weekdays}}">
+                  <paper-button class$="{{ type }} {{item.cl}}" label$="{{item.label}}" data-value="{{ item.val }}">
+                    {{item.val}}
+                  </paper-button>
+                </template>
+              </div>
+              <!--selectable=".active"-->
+              <iron-selector id="todays" attr-for-selected="data-value" selected="{{toDateViewDate}}"
+                             class="alldays smallbutton container flex-wrap center center-justified">
+                <template is="dom-repeat" id="template_todays" items="{{toDays}}">
+                  <paper-button class$="{{ type }} {{item.cl}}" data-value="{{item.val}}" label$="{{item.label}}"> {{
+                    item.label }}
+                  </paper-button>
+                </template>
+              </iron-selector>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="container flex-end-justified">
+          <span class="button"><paper-button on-tap="cancelNCloseDialog" label="Cancel"> Cancel </paper-button></span>
+          <span class="button"><paper-button on-tap="selectNCloseDialog" label="Select"> Select </paper-button></span>
+        </div>
+
+      </div>
+
+    </paper-dialog>
+  </template>
+  <script>
+
+    Polymer({
+      is: "date-range-input",
+      properties: {
+        name: {
+          type: String
+        },
+        fromDate: {
+          type: Object,
+          observer: 'fromDateChanged',
+          notify: true
+        },
+        toDate: {
+          type: Object,
+          observer: 'toDateChanged',
+          notify: true
+        },
+        fromDays: {
+          type: Array,
+          notify: true
+        },
+        toDays: {
+          type: Array,
+          notify: true
+        }
+      },
+
+      clickEvent: function (e) {
+        this.$.datedialog.open();
+      },
+
+      ready: function () {
+
+        this.fromDays = [];
+        this.toDays = [];
+
+        this.type = 'days';
+        if (!this.fromDate) {
+          this.fromDate = moment().subtract(1, 'month');
+        }
+
+        if (!this.toDate) {
+          this.toDate = moment();
+        }
+
+        this.view = 'Days';
+        this.weekdays = this.getDayNames();
+
+      },
+
+
+      cancelNCloseDialog: function (e) {
+        this.fromDateViewDate = this.fromDate;
+        this.toDateViewDate = this.toDate;
+        this.$.datedialog.close();
+      },
+
+      selectNCloseDialog: function (e) {
+        this.fromDate = this.fromDateViewDate;
+        this.toDate = this.toDateViewDate;
+        this.$.datedialog.close();
+      },
+
+      fromDateChanged: function () {
+        this.fromDateString = this.fromDate.format('DD MMM YYYY');
+        this.fromMon = this.fromDate.format('MMM');
+        this.fromWeekDay = this.fromDate.format('dddd');
+        this.fromMonthDay = this.fromDate.format('DD');
+        this.fromMonthYear = this.fromDate.format('YYYY');
+        /** from date clone **/
+        this.fromDateViewDate = this.fromDate.clone();
+        this.fromDateViewMonthYear = this.fromDateViewDate.format('MMMM YYYY');
+        this.getDays('fromDays', this.fromDateViewDate);
+        this.fromUpdate();
+        this.toUpdate();
+      },
+
+      toDateChanged: function () {
+        this.toMon = this.toDate.format('MMM');
+        this.toWeekDay = this.toDate.format('dddd');
+        this.toMonthDay = this.toDate.format('DD');
+        this.toMonthYear = this.toDate.format('YYYY');
+        /** to date clone **/
+        this.toDateViewDate = this.toDate.clone();
+        this.toDateViewMonthYear = this.toDateViewDate.format('MMMM YYYY');
+        this.getDays('toDays', this.toDateViewDate, this.fromDate.toDate());
+        this.fromUpdate();
+        this.toUpdate();
+        this.toDateString = this.toDate.format('DD MMM YYYY');
+      },
+      toNext: function () {
+        this.toDateViewDate.add(1, 'month');
+        this.toUpdate();
+      },
+      toPrev: function () {
+        this.toDateViewDate.subtract(1, 'month');
+        this.toUpdate();
+      },
+      toUpdate: function () {
+        if (this.toDateViewDate != null) {
+          this.toDateViewMonthYear = this.toDateViewDate.format('MMMM YYYY');
+          this.getDays('toDays', this.toDateViewDate, this.fromDate.toDate());
+        }
+      },
+      fromNext: function () {
+        this.fromDateViewDate.add(1, 'month');
+        this.fromUpdate();
+      },
+      fromPrev: function () {
+        this.fromDateViewDate.subtract(1, 'month');
+        this.fromUpdate();
+      },
+      fromUpdate: function () {
+        if (this.toDateViewDate < this.fromDate) {
+          this.toDateViewDate = this.fromDate.clone();
+        }
+        if (this.fromDateViewDate != null) {
+          this.fromDateViewMonthYear = this.fromDateViewDate.format('MMMM YYYY');
+          this.getDays('fromDays', this.fromDateViewDate);
+        }
+      },
+      getDayNames: function () {
+        var self = this;
+        var start = moment().day(0),
+          end = moment().day(6),
+          days = [];
+        moment().range(start, end)
+          .by('days', function (moment) {
+            days.push({
+              val: moment.format('dd'),
+              label: moment.format('dd'),
+              cl: 'heading'
+            });
+          });
+        return days;
+      },
+      getDays: function (fromOrToDays, calcdate, datelimit) {
+        var self = this;
+        if (datelimit != null) {
+          datelimit = moment(datelimit).startOf('day').toDate();
+        }
+        var start = calcdate.clone().startOf('month').day(0),
+          end = calcdate.clone().endOf('month').day(6),
+          month = calcdate.month();
+        self.splice(fromOrToDays, 0, fromOrToDays == 'fromDays' ? self.fromDays.length : self.toDays.length);
+        moment().range(start, end)
+          .by('days', function (moment) {
+            var cssclass = 'fade';
+            if (datelimit && datelimit <= moment.toDate() && moment.month() === month) {
+              cssclass = 'active';
+              if (moment.isSame(self.toDate, 'days')) {
+                cssclass = 'active core-selected';
+              }
+            } else if (!datelimit && moment.month() === month) {
+              cssclass = 'active';
+              if (moment.isSame(self.fromDate, 'days')) {
+                cssclass = 'active core-selected';
+              }
+            }
+            self.push(fromOrToDays, {
+              val: moment,
+              label: moment.format('D'),
+              cl: cssclass
+            });
+          });
+      },
+    });
+  </script>
+
+</dom-module>

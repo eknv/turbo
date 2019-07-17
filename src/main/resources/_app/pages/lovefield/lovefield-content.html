@@ -1,0 +1,38 @@
+<dom-module id="lovefield-content">
+
+    <link rel="import" href="../../../components/pd-dashboard/turbo-ajax.html"/>
+
+    <template>
+
+        sample text
+
+
+    </template>
+
+
+    <script>
+
+        Polymer({
+            is: "lovefield-content",
+            properties: {},
+
+            ready: function () {
+
+                $$.execute('execute_sequeljs')
+                    .then(function (result) {
+                        console.log("result from execute_sequeljs: ", result)
+                    });
+
+                $$.execute('test_db_update1')
+                    .then(function (result) {
+                        console.log("result from test_db_update1: ", result)
+                    });
+            }
+
+
+        })
+        ;
+    </script>
+
+</dom-module>
+

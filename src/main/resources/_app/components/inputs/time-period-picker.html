@@ -1,0 +1,123 @@
+<link rel="import" href="../../../../_framework/_bl/utils/general-utils-import.html">
+
+<dom-module id="time-period-picker">
+    <template>
+
+        <style>
+            .container {
+                @apply(--layout-horizontal);
+                @apply(--layout-end);
+            }
+
+            paper-input-container {
+                padding-left: 5px;
+                padding-right: 10px;
+            }
+
+            #time_picker_from {
+                width: 40px;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+
+            #time_picker_to {
+                width: 40px;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+
+
+        </style>
+
+        <paper-input-container always-float-label>
+            <label>{{name}}</label>
+            <div class="container">
+                <input id="time_picker_from" type="text">
+                -
+                <input id="time_picker_to" type="text">
+            </div>
+        </paper-input-container>
+
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+        is: 'time-period-picker',
+
+        properties: {
+            name: {
+                type: String
+            },
+            fromTime: {
+                type: String,
+                reflectToAttribute: true,
+                notify: true
+            },
+            toTime: {
+                type: String,
+                reflectToAttribute: true,
+                notify: true
+            }
+        }
+        ,
+
+
+        ready: function () {
+
+            var self = this;
+
+            setTimeout(function () {
+
+                var time_picker_from = self.$.time_picker_from;
+                var time_picker_to = self.$.time_picker_to;
+
+                var timeFormat = 'HH:mm';
+
+                $(time_picker_from).timepickeralone({
+                    hours: true,
+                    minutes: true,
+                    seconds: false,
+                    ampm: true,
+                    defaultTime: '00:00',
+                    inputFormat: timeFormat,
+                    onChange: function () {
+                        if(!G.isNullEmpty($(time_picker_to).val())) {
+                            var fromTime = moment(this.get(), timeFormat);
+                            var toTime = moment($(time_picker_to).val(), timeFormat);
+                            if(toTime.isValid() && toTime.isBefore(fromTime)) {
+                                $(time_picker_to).val(this.get())
+                            }
+                        }
+                    }
+                });
+
+                $(time_picker_to).timepickeralone({
+                    hours: true,
+                    minutes: true,
+                    seconds: false,
+                    ampm: true,
+                    defaultTime: '00:00',
+                    inputFormat: timeFormat,
+                    onChange: function () {
+                        if(!G.isNullEmpty($(time_picker_from).val())) {
+                            var fromTime = moment($(time_picker_from).val(), timeFormat);
+                            var toTime = moment(this.get(), timeFormat);
+                            if(fromTime.isValid() && toTime.isBefore(fromTime)) {
+                                $(time_picker_from).val(this.get())
+                            }
+                        }
+                    }
+                });
+
+                $(time_picker_from).val(self.fromTime);
+                $(time_picker_to).val(self.toTime);
+
+            }, 100);
+
+
+        }
+
+
+    });
+</script>

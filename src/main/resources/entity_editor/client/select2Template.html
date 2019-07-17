@@ -1,0 +1,9 @@
+
+<select2-wrapper style="position: absolute;"  constraint="row.entity" fields="grid.appScope.currentModel.fields" >
+    <ui-select multiple ng-model="row.entity.fields" theme="select2" ng-disabled="disabled" style="overflow: visible;width: 300px;">
+        <ui-select-match placeholder="Select fields...">{{$item}}</ui-select-match>
+        <ui-select-choices repeat="field in availableFields | filter:$select.search">
+            {{field}}
+        </ui-select-choices>
+    </ui-select>
+</select2-wrapper>
